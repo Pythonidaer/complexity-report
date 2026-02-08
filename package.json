@@ -1,6 +1,6 @@
 {
   "name": "@pythonidaer/complexity-report",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns",
   "type": "module",
   "main": "index.js",

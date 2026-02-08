@@ -23,10 +23,10 @@ npm install -D @pythonidaer/complexity-report
 
 ## Requirements
 
-- **Node.js**: >=18
-- **ESLint**: >=9.0.0 with flat config (`eslint.config.js`)
+- **Node.js**: >=18 (to run the CLI)
+- **Project being analyzed** must have an ESLint flat config file at its root: `eslint.config.js`, `eslint.config.mjs`, or `eslint.config.cjs`
 
-Your project must have an ESLint flat config file. The tool will use your project's ESLint configuration to analyze complexity.
+The package bundles ESLint and uses your project's config to run complexity analysis. You do not need to install ESLint or TypeScript in your project for the tool to work.
 
 ## Quick Start
 

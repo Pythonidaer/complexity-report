@@ -97,6 +97,7 @@ console.log(\`Total functions: \${result.stats.allFunctionsCount}\`);
 - [Developer Guide](./docs/DEVELOPER.md)  
 - [Migration Guide](./docs/MIGRATION.md)
 - [Changelog](./CHANGELOG.md)
+- [Publishing to npm](./PUBLISH.md) — for maintainers
 
 ## License
 

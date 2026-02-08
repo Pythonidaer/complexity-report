@@ -1,6 +1,6 @@
 {
   "name": "complexity-report",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns",
   "type": "module",
   "main": "index.js",
@@ -47,7 +47,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Pythonidaer/complexity-report.git"
+    "url": "git+https://github.com/Pythonidaer/complexity-report.git"
   },
   "homepage": "https://github.com/Pythonidaer/complexity-report#readme",
   "dependencies": {

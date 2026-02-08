@@ -36,6 +36,14 @@ describe("get-complexity-threshold", () => {
     expect(result).toBe(15);
   });
 
+  it("detects threshold when severity uses single quotes (e.g. 'warn')", () => {
+    mockReadFileSync.mockReturnValue(
+      "complexity: ['warn', { max: 12, variant: 'classic' }],"
+    );
+    const result = getComplexityThreshold("/project/root");
+    expect(result).toBe(12);
+  });
+
   it("returns 10 and logs warning when no complexity threshold found", () => {
     const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     mockReadFileSync.mockReturnValue("no complexity here");

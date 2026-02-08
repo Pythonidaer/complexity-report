@@ -73,6 +73,13 @@ export async function runESLintComplexityCheck(projectRoot) {
         '**/__tests__/**',
         '**/*.test.{js,ts,tsx}',
         '**/*.spec.{js,ts,tsx}',
+        // Avoid linting report output and common build/cache dirs (prevents apparent hang)
+        'complexity/**',
+        'dist/**',
+        'build/**',
+        '.angular/**',
+        '**/coverage/**',
+        'node_modules/**',
       ],
       overrideConfig: {
         rules: {

@@ -21,6 +21,8 @@
 npm install -D @pythonidaer/complexity-report
 ```
 
+On **Angular 21** or other projects using **ESLint 10**, install may fail with peer dependency conflicts; use `npm install --legacy-peer-deps` or set `legacy-peer-deps=true` in `.npmrc`. See [Troubleshooting](#npm-install-fails-with-peer-dependency-errors-eg-angular-21-eslint-10).
+
 ## Requirements
 
 - **Node.js**: >=18 (to run the CLI)
@@ -28,15 +30,19 @@ npm install -D @pythonidaer/complexity-report
 
 The package bundles ESLint and uses your project's config to run complexity analysis. You do not need to install ESLint or TypeScript in your project for the tool to work.
 
+**Performance:** The tool runs ESLint with `lintFiles(['.'])` and applies built-in ignores for `complexity/**`, `dist/**`, `build/**`, `.angular/**`, `**/coverage/**`, and `node_modules/**` so the run does not hang on report output or build dirs. You do not need to add these to your ESLint config—the tool ignores them automatically. Your config's own ignores also apply; add any other large or generated dirs there if needed.
+
 ## Quick Start
 
 ### CLI Usage
 
-Run from your project root:
+Run from your project root (after installing above):
 
 ```bash
 npx complexity-report
 ```
+
+Use the hyphen: `complexity-report` (not `complexity report`). To run without adding to `package.json`: `npx @pythonidaer/complexity-report`
 
 This generates an interactive HTML report at `complexity/index.html`.
 
@@ -97,6 +103,22 @@ console.log(`Total functions: ${result.stats.allFunctionsCount}`);
 - [Developer Guide](./docs/DEVELOPER.md) — internals and contributing
 - [Changelog](./CHANGELOG.md) — version history and migration from scripts
 - [Publishing to npm](./PUBLISH.md) — for maintainers
+
+## Troubleshooting
+
+### Report seems to hang on "Running ESLint to collect complexity..."
+
+The tool ignores `complexity/**`, `dist/**`, `build/**`, `.angular/**`, `**/coverage/**`, and `node_modules/**` by default, so you don't need those in your ESLint config. If it still hangs, add other large or generated directories to your ESLint config's `ignore` (e.g. `.next/**`, `out/**`, `*.min.js`).
+
+### npm install fails with peer dependency errors (e.g. Angular 21, ESLint 10)
+
+Some setups (e.g. Angular 21 with ESLint 10) can trigger peer dependency conflicts. Install with:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+Or add to your project's `.npmrc`: `legacy-peer-deps=true`. The report runs correctly with ESLint 10 once installed.
 
 ## License
 

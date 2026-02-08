@@ -15,8 +15,8 @@ export function getComplexityThreshold(projectRoot) {
     const configContent = readFileSync(configPath, 'utf-8');
 
     // Extract all complexity max values using regex
-    // Pattern: complexity: ["warn", { max: <number>, variant: "classic" }]
-    const complexityMatches = configContent.match(/complexity:\s*\["warn",\s*\{\s*max:\s*(\d+)/g);
+    // Pattern: complexity: ["warn" | 'warn', { max: <number>, ... }] — accept single or double quotes
+    const complexityMatches = configContent.match(/complexity:\s*\[["'](?:warn|error)["'],\s*\{\s*max:\s*(\d+)/g);
 
     if (!complexityMatches || complexityMatches.length === 0) {
       // Default to 10 if not found

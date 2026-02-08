@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-02-08
+
+### Fixed
+- **Threshold detection:** Regex now accepts single or double quotes around severity (e.g. `'warn'` or `"warn"`) in eslint.config.js.
+- **Report hang:** Built-in ESLint ignore patterns for `complexity/**`, `dist/**`, `build/**`, `.angular/**`, `**/coverage/**`, `node_modules/**` so the run does not hang on report output or build/cache dirs.
+
+### Added
+- README: Angular 21 / ESLint 10 note at Installation (legacy-peer-deps); Troubleshooting for peer dependency errors and slow runs.
+- README: Performance note updated to describe built-in ignores.
+
 ## [1.0.5] - 2026-02-08
 
 ### Fixed

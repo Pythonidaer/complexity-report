@@ -1,0 +1,64 @@
+{
+  "name": "complexity-report",
+  "version": "1.0.0",
+  "description": "AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "complexity-report": "report/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "report": "node report/cli.js"
+  },
+  "files": [
+    "index.js",
+    "report/",
+    "integration/",
+    "function-boundaries/",
+    "function-extraction/",
+    "decision-points/",
+    "html-generators/",
+    "export-generators/",
+    "assets/",
+    "complexity-breakdown.js",
+    "function-hierarchy.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "complexity",
+    "cyclomatic-complexity",
+    "eslint",
+    "code-quality",
+    "static-analysis",
+    "ast",
+    "javascript",
+    "typescript",
+    "code-metrics",
+    "complexity-report"
+  ],
+  "author": "Johnny Hammond",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pythonidaer/complexity-report.git"
+  },
+  "homepage": "https://github.com/Pythonidaer/complexity-report#readme",
+  "dependencies": {
+    "eslint": "^9.0.0",
+    "@typescript-eslint/typescript-estree": "^8.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0",
+    "@vitest/coverage-v8": "^2.0.0"
+  },
+  "peerDependencies": {
+    "eslint": ">=9.0.0"
+  }
+}

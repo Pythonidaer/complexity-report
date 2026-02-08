@@ -1,0 +1,103 @@
+# complexity-report
+
+> AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns
+
+[![npm version](https://img.shields.io/npm/v/complexity-report.svg)](https://www.npmjs.com/package/complexity-report)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Features
+
+- 🎯 **100% Accurate** - Uses ESLint's AST parser for perfect complexity calculations
+- 📊 **Interactive HTML Reports** - Beautiful, sortable tables with file-by-file breakdowns
+- 🔍 **Decision Point Analysis** - See exactly which lines contribute to complexity
+- 📈 **Hierarchical Function Display** - Understand nested callback complexity
+- 📝 **Multiple Export Formats** - TXT and Markdown exports for documentation
+- ⚡ **Fast** - Analyzes hundreds of files in seconds
+- 🎨 **Syntax Highlighting** - Code annotations with prettify.js
+
+## Installation
+
+\`\`\`bash
+npm install --save-dev complexity-report
+\`\`\`
+
+## Requirements
+
+- **Node.js**: >=18
+- **ESLint**: >=9.0.0 with flat config (\`eslint.config.js\`)
+
+Your project must have an ESLint flat config file. The tool will use your project's ESLint configuration to analyze complexity.
+
+## Quick Start
+
+### CLI Usage
+
+Run from your project root:
+
+\`\`\`bash
+npx complexity-report
+\`\`\`
+
+This generates an interactive HTML report at \`complexity/index.html\`.
+
+### With npm Scripts
+
+Add to your \`package.json\`:
+
+\`\`\`json
+{
+  "scripts": {
+    "complexity": "complexity-report",
+    "complexity:export": "complexity-report --export"
+  }
+}
+\`\`\`
+
+Then run:
+
+\`\`\`bash
+npm run complexity
+\`\`\`
+
+## CLI Options
+
+\`\`\`bash
+complexity-report [options]
+
+Options:
+  --cwd <path>              Project root directory (default: process.cwd())
+  --output-dir <path>       Output directory (default: complexity)
+  --show-all                Show all functions initially (not just over threshold)
+  --show-all-columns        Show all breakdown columns initially  
+  --hide-table              Hide breakdown table initially
+  --no-lines                Hide line numbers initially
+  --no-highlights           Hide code highlights initially
+  --export                  Generate TXT/MD exports
+\`\`\`
+
+## Programmatic API
+
+\`\`\`javascript
+import { generateComplexityReport } from 'complexity-report';
+
+const result = await generateComplexityReport({
+  cwd: '/path/to/project',
+  outputDir: 'reports/complexity',
+  showAllInitially: true,
+  shouldExport: true,
+});
+
+console.log(\`Generated report in: \${result.complexityDir}\`);
+console.log(\`Total functions: \${result.stats.allFunctionsCount}\`);
+\`\`\`
+
+## Documentation
+
+- [Full API Documentation](./docs/API.md)
+- [Developer Guide](./docs/DEVELOPER.md)  
+- [Migration Guide](./docs/MIGRATION.md)
+- [Changelog](./CHANGELOG.md)
+
+## License
+
+MIT © Johnny Hammond

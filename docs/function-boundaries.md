@@ -1,0 +1,23 @@
+# Function Boundaries
+
+## function-boundaries/
+
+This module computes the start and end line numbers for each function reported by ESLint (e.g. for cyclomatic complexity). Given full source code and an array of function entries (each with `line`, `nodeType`, and `functionName`), it returns a Map from function line to `{ start, end }`. That map is used to determine nesting (which function contains which), to drive code highlighting and border indentation in the HTML report, and to build hierarchical function names in the breakdown table. The logic is entirely line- and character-based: it does not use an AST, only the ESLint-reported line and node type plus scanning of the source.
+
+The main public API is `findFunctionBoundaries(sourceCode, functions)`, which returns a `Map<functionLine, { start, end }>`. For each function it finds start and end by shape. **Arrow functions:** start is the line where `=>` appears (or the reported line). End is derived by shape: JSX return `=> ( ... )`, object literal `=> ({ ... })`, arrow inside a JSX attribute (e.g. `onClick={ ... => ... }`), or single-expression arrows (e.g. `.map(x => x.id)`). For arrows with a brace-delimited body (`=> { ... }`), the module scans forward and counts `{` and `}` while ignoring braces inside comments, string literals, and regex literals. It also handles React-style dependency arrays (`}, [deps]`) and setTimeout-style callbacks (`}, delay`) so the reported end line is the end of the callback, not the outer call. **Named functions:** start is found by looking backward (up to 50 lines) for a declaration matching the function name; end uses the same brace-counting and special-pattern logic.
+
+If end cannot be determined, a fallback re-scans for the function body and brace balance, then caps the end at 500 lines past start. The module has no internal script dependencies; it is pure logic. It is called by `report/index.js`, `html-generators/file.js`, `export-generators/index.js`, and `tools/analyze-ast-mismatches/index.js`.
+
+**FunctionDeclaration end detection:** For `FunctionDeclaration` nodes (e.g. React components), `checkFunctionEnd` does **not** treat a line that looks like `}, [` (callback body end plus dependency-array start) as the end of the function. That pattern closes an inner callback (e.g. `useEffect`, `useCallback`). The scanner keeps counting braces until the component’s real closing `}`. This keeps inner callbacks like `onSelect` and `scrollTo` correctly nested under the component in the hierarchy and in the FCB table.
+
+**Dependencies:**
+- None (no imports; self-contained)
+
+**Issues to resolve (for robustness and consistency with AST-based naming):**
+
+- **50-line lookback for named start:** `findNamedFunctionStart` checks up to 50 lines back. For very long functions or unusual formatting, the declaration may be missed and start can be wrong. Consider documenting as best-effort or deriving a safe bound.
+- **50-line limit for JSX return scan:** `scanForJSXReturnClosingParens` stops after 50 lines. Very long JSX returns may get an incorrect end. Same consideration as above.
+- **500-line cap in fallback:** `findFunctionEndFallback` caps end at `start + 500`. Functions longer than 500 lines will have a truncated end; nesting and highlighting may be wrong for lines beyond that. Document or make configurable.
+- **Line- and character-based only (no AST):** All boundaries are derived from scanning text (braces, parens, regex patterns). Nested templates, unusual formatting, or syntax that looks like braces inside strings/regex can cause mis-scanned boundaries. For full accuracy, an AST-based boundary pass could be added (e.g. using the same parser as function-extraction.js) and used when available.
+- **Regex patterns for named function start:** `findNamedFunctionStart` uses a fixed list of regex patterns. New declaration styles (e.g. new syntax or decorators) may not match; start would fall back to the reported line. Extend patterns or document as best-effort.
+- **Framework-specific callback end patterns:** `checkCallbackPatterns` only special-cases two patterns: React-style dependency array (`}, [`) and setTimeout/setInterval-style (`}, number`). Other frameworks (Vue, Angular, Svelte, etc.) or APIs that pass a callback followed by another argument (e.g. `}, options`) are not explicitly handled; end detection relies on brace balance alone, which may be wrong if the following syntax is complex. To be framework-agnostic, either generalize to a small set of structural patterns (e.g. "callback then comma then bracket or number"), document the current behavior as React/timer-specific, or derive callback end from AST when available so any call expression shape is handled uniformly.

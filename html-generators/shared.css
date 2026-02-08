@@ -1,0 +1,471 @@
+/* Shared CSS for Complexity Report HTML Pages */
+
+/* Base Styles */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: Helvetica Neue, Helvetica, Arial;
+  font-size: 14px;
+  color: #333;
+}
+
+*, *:after, *:before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* Typography */
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+h2 {
+  font-size: 14px;
+}
+
+h3 {
+  font-size: 14px;
+  margin: 12px 0 4px 0;
+  font-weight: bold;
+}
+
+p {
+  margin: 4px 0;
+}
+
+ul {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+li {
+  margin: 2px 0;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.strong {
+  font-weight: bold;
+}
+
+/* Links */
+a {
+  color: #0074D9;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.about-link {
+  color: #0074D9;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
+
+.quiet {
+  color: #7f7f7f;
+  color: rgba(0,0,0,0.5);
+}
+
+.quiet a {
+  opacity: 0.7;
+}
+
+/* Code */
+code {
+  font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-size: 13px;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font: 12px/1.4 Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  margin: 0;
+  padding: 0;
+  -moz-tab-size: 2;
+  -o-tab-size: 2;
+  tab-size: 2;
+}
+
+/* Spacing Utilities */
+.pad1 {
+  padding: 10px;
+}
+
+.pad1y {
+  padding: 10px 0;
+}
+
+.pad2 {
+  padding: 10px;
+}
+
+.pad2x {
+  padding: 0 20px;
+}
+
+.pad2y {
+  padding: 20px 0;
+}
+
+.space-top1 {
+  padding: 10px 0 0 0;
+}
+
+.space-left2 {
+  padding-left: 55px;
+}
+
+.space-right2 {
+  padding-right: 20px;
+}
+
+/* Layout */
+.clearfix {
+  display: block;
+}
+
+.clearfix:after {
+  content: '';
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+.fl {
+  float: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.header-row h1 {
+  margin: 0;
+}
+
+/* Coverage Summary Table */
+.coverage-summary {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.coverage-summary tr {
+  border-bottom: 1px solid #bbb;
+}
+
+.keyline-all {
+  border: 1px solid #ddd;
+}
+
+.coverage-summary td,
+.coverage-summary th {
+  padding: 10px;
+}
+
+.coverage-summary tbody tr {
+  background-color: rgb(230, 245, 208);
+}
+
+/* Row background colors based on complexity level (only for function rows, not folder rows) */
+.coverage-summary tbody tr[data-complexity].high {
+  background-color: #fff4c2;
+}
+
+.coverage-summary tbody tr[data-complexity].medium,
+.coverage-summary tbody tr[data-complexity].low {
+  background-color: #FCE1E5;
+}
+
+.coverage-summary tbody {
+  border: 1px solid #bbb;
+}
+
+.coverage-summary td {
+  border-right: 1px solid #bbb;
+}
+
+.coverage-summary td:last-child {
+  border-right: none;
+}
+
+.coverage-summary th {
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border: none !important;
+}
+
+.coverage-summary th:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Sort arrow sprite (matching coverage report) */
+.coverage-summary .sorter {
+  height: 10px;
+  width: 7px;
+  display: inline-block;
+  margin-left: 0.5em;
+  background: url(sort-arrow-sprite.png) no-repeat scroll 0 0 transparent;
+}
+
+.coverage-summary .sorted .sorter {
+  background-position: 0 -20px;
+}
+
+.coverage-summary .sorted-desc .sorter {
+  background-position: 0 -10px;
+}
+
+/* Footer */
+.footer {
+  height: 48px;
+  padding: 20px;
+}
+
+.coverage-summary th.file {
+  border-right: none !important;
+}
+
+.coverage-summary th.pct,
+.coverage-summary th.abs,
+.coverage-summary th.pic {
+  text-align: right;
+}
+
+.coverage-summary td.pct,
+.coverage-summary td.abs {
+  text-align: right;
+}
+
+.coverage-summary td.file {
+  white-space: nowrap;
+}
+
+.coverage-summary td.pic {
+  min-width: 120px !important;
+  text-align: right;
+}
+
+.coverage-summary td.bar {
+  padding: 10px;
+  min-width: 120px !important;
+}
+
+/* Chart / Progress Bar */
+.chart {
+  line-height: 0;
+  font-size: 0;
+  white-space: nowrap;
+}
+
+.cover-fill,
+.cover-empty {
+  display: inline-block;
+  height: 12px;
+  vertical-align: top;
+}
+
+.cover-empty {
+  background: white;
+}
+
+.cover-full {
+  border-right: none !important;
+}
+
+/* Complexity Level Colors - Default (for homepage folder rows) */
+.low .cover-fill {
+  background: #C21F39;
+}
+
+.low .chart {
+  border: 1px solid #C21F39;
+}
+
+.high .cover-fill {
+  background: rgb(77,146,33);
+}
+
+.high .chart {
+  border: 1px solid rgb(77,146,33);
+}
+
+.medium .cover-fill {
+  background: #f9cd0b;
+}
+
+.medium .chart {
+  border: 1px solid #f9cd0b;
+}
+
+/* Complexity Level Colors - Function rows only (for folder pages) */
+.function-complexity-table .high .cover-fill {
+  background: #f9cd0b;
+}
+
+.function-complexity-table .high .chart {
+  border: 1px solid #f9cd0b;
+}
+
+.function-complexity-table .medium .cover-fill {
+  background: #C21F39;
+}
+
+.function-complexity-table .medium .chart {
+  border: 1px solid #C21F39;
+}
+
+.acceptable .cover-fill {
+  background: rgb(100,150,50);
+}
+
+.acceptable .chart {
+  border: 1px solid rgb(100,150,50);
+}
+
+.good .cover-fill {
+  background: rgb(120,160,70);
+}
+
+.good .chart {
+  border: 1px solid rgb(120,160,70);
+}
+
+.status-line {
+  height: 10px;
+}
+
+.status-line.low {
+  background: #C21F39;
+}
+
+.status-line.high {
+  background: rgb(77,146,33);
+}
+
+.status-line.medium {
+  background: #f9cd0b;
+}
+
+/* Complexity Values */
+.complexity-value {
+  font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+.complexity-value.low {
+  color: #C21F39;
+}
+
+.complexity-value.medium {
+  color: #f9cd0b;
+}
+
+.complexity-value.high {
+  color: rgb(77,146,33);
+}
+
+.complexity-value.acceptable {
+  color: rgb(100,150,50);
+}
+
+.complexity-value.good {
+  color: rgb(120,160,70);
+}
+
+.fraction {
+  font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-size: 10px;
+  color: #555;
+  background: #E8E8E8;
+  padding: 4px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+/* Sort Icons */
+.sort-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 5px;
+  color: #999;
+  opacity: 0.5;
+}
+
+.sort-icon.active {
+  color: #000;
+  opacity: 1;
+}
+
+/* Controls */
+.controls {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.controls label {
+  margin-right: 15px;
+  font-weight: normal;
+}
+
+.controls input,
+.controls select {
+  margin-left: 5px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+/* Additional Color Classes */
+.acceptable {
+  background: rgb(240,250,230);
+}
+
+.good {
+  background: rgb(245,252,240);
+}
+
+.acceptable .cover-fill {
+  background: rgb(100,150,50);
+}
+
+.good .cover-fill {
+  background: rgb(120,160,70);
+}
+
+.acceptable .chart {
+  border: 1px solid rgb(100,150,50);
+}
+
+.good .chart {
+  border: 1px solid rgb(120,160,70);
+}

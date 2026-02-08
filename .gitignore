@@ -1,0 +1,9 @@
+node_modules/
+complexity/
+*.log
+.DS_Store
+coverage/
+dist/
+.env
+.vscode/
+.idea/

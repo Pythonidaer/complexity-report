@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-02-08
+
+### Fixed
+- README: removed broken Documentation links (API.md, MIGRATION.md); point to existing docs and in-readme section.
+- DEVELOPER.md: package name and install/import examples updated to @pythonidaer/complexity-report.
+
+## [1.0.3] - 2026-02-08
+
+### Fixed
+- README Markdown: corrected fenced code blocks for npm display (removed escaped backticks).
+- Installation section: use `npm install -D @pythonidaer/complexity-report`.
+
 ## [1.0.2] - 2026-02-08
 
 ### Changed

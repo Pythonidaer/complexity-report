@@ -1,8 +1,8 @@
-# complexity-report
+# @pythonidaer/complexity-report
 
 > AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns
 
-[![npm version](https://img.shields.io/npm/v/complexity-report.svg)](https://www.npmjs.com/package/complexity-report)
+[![npm version](https://img.shields.io/npm/v/@pythonidaer/complexity-report.svg)](https://www.npmjs.com/package/@pythonidaer/complexity-report)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -18,7 +18,7 @@
 ## Installation
 
 ```bash
-npm install --save-dev complexity-report
+npm install -D @pythonidaer/complexity-report
 ```
 
 ## Requirements
@@ -94,7 +94,7 @@ cd /path/to/other/project && npx complexity-report
 ## Programmatic API
 
 ```javascript
-import { generateComplexityReport } from 'complexity-report';
+import { generateComplexityReport } from '@pythonidaer/complexity-report';
 
 const result = await generateComplexityReport({
   cwd: '/path/to/project',           // Project root (default: process.cwd())
@@ -143,7 +143,7 @@ interface ComplexityReportResult {
 import { 
   findESLintConfig,
   getComplexityThreshold 
-} from 'complexity-report';
+} from '@pythonidaer/complexity-report';
 
 // Find ESLint config in a project
 const configPath = findESLintConfig('/path/to/project');

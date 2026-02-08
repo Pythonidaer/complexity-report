@@ -17,14 +17,14 @@
 
 ## Installation
 
-\`\`\`bash
-npm install --save-dev @pythonidaer/complexity-report
-\`\`\`
+```bash
+npm install -D @pythonidaer/complexity-report
+```
 
 ## Requirements
 
 - **Node.js**: >=18
-- **ESLint**: >=9.0.0 with flat config (\`eslint.config.js\`)
+- **ESLint**: >=9.0.0 with flat config (`eslint.config.js`)
 
 Your project must have an ESLint flat config file. The tool will use your project's ESLint configuration to analyze complexity.
 
@@ -34,17 +34,17 @@ Your project must have an ESLint flat config file. The tool will use your projec
 
 Run from your project root:
 
-\`\`\`bash
+```bash
 npx complexity-report
-\`\`\`
+```
 
-This generates an interactive HTML report at \`complexity/index.html\`.
+This generates an interactive HTML report at `complexity/index.html`.
 
 ### With npm Scripts
 
-Add to your \`package.json\`:
+Add to your `package.json`:
 
-\`\`\`json
+```json
 {
   "scripts": {
     "complexity": "complexity-report",
@@ -55,13 +55,13 @@ Add to your \`package.json\`:
 
 Then run:
 
-\`\`\`bash
+```bash
 npm run complexity
-\`\`\`
+```
 
 ## CLI Options
 
-\`\`\`bash
+```bash
 complexity-report [options]
 
 Options:
@@ -73,11 +73,11 @@ Options:
   --no-lines                Hide line numbers initially
   --no-highlights           Hide code highlights initially
   --export                  Generate TXT/MD exports
-\`\`\`
+```
 
 ## Programmatic API
 
-\`\`\`javascript
+```javascript
 import { generateComplexityReport } from '@pythonidaer/complexity-report';
 
 const result = await generateComplexityReport({
@@ -87,16 +87,15 @@ const result = await generateComplexityReport({
   shouldExport: true,
 });
 
-console.log(\`Generated report in: \${result.complexityDir}\`);
-console.log(\`Total functions: \${result.stats.allFunctionsCount}\`);
-\`\`\`
+console.log(`Generated report in: ${result.complexityDir}`);
+console.log(`Total functions: ${result.stats.allFunctionsCount}`);
+```
 
 ## Documentation
 
-- [Full API Documentation](./docs/API.md)
-- [Developer Guide](./docs/DEVELOPER.md)  
-- [Migration Guide](./docs/MIGRATION.md)
-- [Changelog](./CHANGELOG.md)
+- [Programmatic API](#programmatic-api) — usage and options (above)
+- [Developer Guide](./docs/DEVELOPER.md) — internals and contributing
+- [Changelog](./CHANGELOG.md) — version history and migration from scripts
 - [Publishing to npm](./PUBLISH.md) — for maintainers
 
 ## License

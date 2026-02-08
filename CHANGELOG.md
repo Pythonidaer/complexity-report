@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-02-08
+
+### Changed
+- **Package renamed to `@pythonidaer/complexity-report`** — The unscoped name `complexity-report` is already taken on npm by another package. Install with: `npm install --save-dev @pythonidaer/complexity-report`. The CLI command remains `complexity-report`.
+- README and badges updated for scoped package name.
+
 ## [1.0.1] - 2026-02-08
 
 ### Fixed
@@ -63,7 +69,7 @@ If you were using the complexity report from `new-years-project/scripts/`, follo
 ### 1. Install the Package
 
 ```bash
-npm install --save-dev complexity-report
+npm install --save-dev @pythonidaer/complexity-report
 ```
 
 ### 2. Update Scripts in package.json
@@ -85,6 +91,7 @@ With:
   }
 }
 ```
+(The CLI command is still `complexity-report`; only the package name is scoped.)
 
 ### 3. Keep Your Configuration
 

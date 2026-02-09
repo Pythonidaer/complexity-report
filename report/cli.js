@@ -15,7 +15,6 @@ function getCliFlags() {
     hideTableInitially: argv.includes('--hide-table'),
     hideLinesInitially: argv.includes('--no-lines'),
     hideHighlightsInitially: argv.includes('--no-highlights'),
-    shouldExport: argv.includes('--export') || argv.includes('--exports'),
     cwd: getCwdFlag(argv),
     outputDir: getOutputDirFlag(argv),
   };
@@ -48,7 +47,6 @@ async function main() {
     hideTableInitially: flags.hideTableInitially,
     hideLinesInitially: flags.hideLinesInitially,
     hideHighlightsInitially: flags.hideHighlightsInitially,
-    shouldExport: flags.shouldExport,
   });
 }
 

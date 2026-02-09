@@ -64,7 +64,10 @@ function generateMainIndexScript() {
       const headers = document.querySelectorAll('.coverage-summary th[data-sort]');
       let currentSort = { column: null, direction: 'asc' };
       
-      // Filter functionality
+      // Filter functionality: match against file column (data-file) so literal "." filters to root row
+      function escapeRegex(s) {
+        return s.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&');
+      }
       const fileSearch = document.getElementById('fileSearch');
       if (fileSearch) {
         fileSearch.addEventListener('input', function() {
@@ -73,26 +76,21 @@ function generateMainIndexScript() {
           if (!tbody) return;
           const rows = Array.from(tbody.querySelectorAll('tr'));
           
-          // Try to create a RegExp from the searchValue. If it fails (invalid regex),
-          // it will be treated as a plain text search
           let searchRegex;
           try {
-            searchRegex = new RegExp(searchValue, 'i'); // 'i' for case-insensitive
+            searchRegex = new RegExp(escapeRegex(searchValue), 'i');
           } catch (error) {
             searchRegex = null;
           }
           
           rows.forEach(row => {
+            const fileCell = row.getAttribute('data-file') || '';
             let isMatch = false;
-            
             if (searchRegex) {
-              // If a valid regex was created, use it for matching
-              isMatch = searchRegex.test(row.textContent);
+              isMatch = searchRegex.test(fileCell);
             } else {
-              // Otherwise, fall back to the original plain text search
-              isMatch = row.textContent.toLowerCase().includes(searchValue.toLowerCase());
+              isMatch = fileCell.toLowerCase().includes(searchValue.toLowerCase());
             }
-            
             row.style.display = isMatch ? '' : 'none';
           });
         });
@@ -208,7 +206,6 @@ function generateMainIndexScript() {
  * @param {number} allFunctionsCount - Total number of functions
  * @param {Array} overThreshold - Array of functions over threshold
  * @param {number} maxComplexity - Maximum complexity value
- * @param {number} avgComplexity - Average complexity value
  * @param {boolean} showAllInitially - Show all functions initially
  * @param {number} _complexityThreshold - Complexity threshold from ESLint
  *                                        (unused, kept for API compatibility)
@@ -224,7 +221,6 @@ export function generateMainIndexHTML(
   allFunctionsCount,
   overThreshold,
   maxComplexity,
-  avgComplexity,
   _showAllInitially,
   _complexityThreshold = 10,
   decisionPointTotals = {

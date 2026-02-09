@@ -16,6 +16,6 @@ export default [
     },
   },
   {
-    ignores: ['complexity/', 'node_modules/', 'coverage/'],
+    ignores: ['complexity/', 'node_modules/', 'coverage/', 'sample/'],
   },
 ];

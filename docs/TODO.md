@@ -17,14 +17,14 @@ Open and completed work for the complexity report generator. Current status (AST
 - **Highlighting** — Nested border indentation, vertical full-length hover lines, decision-point + function-boundary fix (both classes can apply).
 - **Nested function start-line highlight** — `buildBoundaryLineSets` and `buildBoundaryToStartMap` in `file.js` now accept the `functions` array; every reported function’s start line is added to the boundary sets so nested callbacks (e.g. `.filter`, `.forEach`, `.sort`) get yellow highlight and blue borders even when the boundary finder misses them. `boundaryToStartMap` gets an entry per function for correct indent.
 - **Prefer AST for highlight** — `getFunctionStartColumn(filePath, lineNumber, nodeType, projectRoot)` in `function-extraction/` returns the AST node’s start column (1-based). In `extractFunctionsFromESLintResults`, column is now **prefer AST** over ESLint: we use `getFunctionStartColumn` when it returns a value so the yellow starts at the true function node start (e.g. the `(` of `.forEach(columnKey =>`), not at `=>`. ESLint’s `message.column` is used only when AST fails (parse error / no matching node). Removed the "start at =>" fallback in `file.js`.
-- **Exports** — TXT/MD function-name exports via `--export` to `complexity/reports/` (or `package.json` → `complexityReport.exportDir`).
+- **Exports** — TXT/MD function-name exports generated with every report run to `complexity/reports/` (or `package.json` → `complexityReport.exportDir`).
 - **ESLint integration** — Config derived from project's `eslint.config.js` (framework-agnostic); report written to `complexity/complexity-report.json`; complexity **variant** (classic vs modified) read from config; test files excluded via `ignorePatterns`.
 - **Function Naming Consistency & Flexibility** — AST name preference; hierarchical naming aligned; variable name only for direct init/wrapper call; Line column for multiple callbacks; anonymous callback identification and line numbers in table. All items in original scope done.
 - **Complexity Refactoring** — All target functions refactored to ≤ threshold: buildCodeLineHTML, generateLineRowHTML, getControlFlowDecisionType, extractFunctionsFromESLintResults callback, main, generateFileHTML; plus decision-points/ (forEach, buildDecisionPointEntries) and generateBreakdownSectionHTML. Numbers kept at or below ESLint threshold.
 - **Decision Path Tracking** — Numerically track decision paths per file (if, else, ternary, loops, etc.); categorization and display at file/folder level done.
 - **Fix small homepage/layout issues** — Complete.
 - **Function Source Code Viewing (click-in)** — Enable clicking into each function to view full function source; per-file HTML exists; click-in to expand/view function body complete.
-- **Breakdown Controls & Exports** — Mimic Vitest coverage styles (spacing, line styles, color scheme); TXT/MD exports via `--export`.
+- **Breakdown Controls & Exports** — Mimic Vitest coverage styles (spacing, line styles, color scheme); TXT/MD exports generated with every report.
 - **UI/UX Polish** — Export function feature, clean up package files; styles/headers aligned with Vitest coverage.
 - **Documentation** — About page, README, AST parser docs complete.
 

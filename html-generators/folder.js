@@ -354,7 +354,8 @@ export function generateFolderHTML(
   const assetPrefix = depth > 0 ? '../'.repeat(depth) : '';
   const backLink = assetPrefix ? `${assetPrefix}index.html` : 'index.html';
   const sharedCssPath = assetPrefix ? `${assetPrefix}shared.css` : 'shared.css';
-  const fileLinkPrefix = assetPrefix;
+  // Only root folder page lives in complexity/root/; its file pages are in complexity/. Other folders live beside their files, so no prefix.
+  const fileLinkPrefix = !folderPath && depth === 1 ? '../' : '';
   
   // Generate summary section
   const summarySection = generateSummarySection(
@@ -381,7 +382,7 @@ export function generateFolderHTML(
 <body>
   <div class="pad2">
     <div class="header-row">
-      <h1>${folderPath ? `<a href="${backLink}" style="color: #0074D9; text-decoration: none; font-weight: bold;">All files</a> <span style="font-weight: bold;">${folderPath}</span>` : 'All files'}</h1>
+      <h1><a href="${backLink}" style="color: #0074D9; text-decoration: none; font-weight: bold;">All files</a>${folderPath ? ` <span style="font-weight: bold;">${folderPath}</span>` : ''}</h1>
       <a href="${assetPrefix ? assetPrefix + 'about.html' : 'about.html'}" class="about-link">About Cyclomatic Complexity</a>
     </div>
     ${summarySection}

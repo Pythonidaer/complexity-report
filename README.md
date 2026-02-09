@@ -46,6 +46,8 @@ Use the hyphen: `complexity-report` (not `complexity report`). To run without ad
 
 This generates an interactive HTML report at `complexity/index.html`.
 
+Add `complexity/` to your `.gitignore` to avoid committing generated reports.
+
 ### With npm Scripts
 
 Add to your `package.json`:
@@ -53,8 +55,7 @@ Add to your `package.json`:
 ```json
 {
   "scripts": {
-    "complexity": "complexity-report",
-    "complexity:export": "complexity-report --export"
+    "complexity": "complexity-report"
   }
 }
 ```
@@ -78,7 +79,6 @@ Options:
   --hide-table              Hide breakdown table initially
   --no-lines                Hide line numbers initially
   --no-highlights           Hide code highlights initially
-  --export                  Generate TXT/MD exports
 ```
 
 ## Programmatic API
@@ -90,7 +90,6 @@ const result = await generateComplexityReport({
   cwd: '/path/to/project',
   outputDir: 'reports/complexity',
   showAllInitially: true,
-  shouldExport: true,
 });
 
 console.log(`Generated report in: ${result.complexityDir}`);

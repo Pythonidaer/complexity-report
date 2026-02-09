@@ -21,13 +21,11 @@ export { getComplexityThreshold } from './integration/threshold/index.js';
  * @property {boolean} [hideTableInitially] - Hide breakdown table initially
  * @property {boolean} [hideLinesInitially] - Hide line numbers initially
  * @property {boolean} [hideHighlightsInitially] - Hide code highlights initially
- * @property {boolean} [shouldExport] - Generate TXT/MD export files
  * 
  * @typedef {Object} ComplexityReportResult
  * @property {Object} stats - Statistics about analyzed functions
  * @property {number} stats.allFunctionsCount - Total number of functions analyzed
  * @property {number} stats.maxComplexity - Highest complexity found
- * @property {number} stats.avgComplexity - Average complexity
  * @property {number} stats.withinThreshold - Number of functions within threshold
  * @property {number} stats.withinThresholdPercentage - Percentage within threshold
  * @property {Array} stats.overThreshold - Functions exceeding complexity threshold

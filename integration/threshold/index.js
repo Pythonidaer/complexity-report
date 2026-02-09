@@ -1,15 +1,19 @@
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { findESLintConfig } from '../eslint/index.js';
 
 /**
- * Reads the complexity threshold from eslint.config.js
- * Returns the maximum threshold value found (different file types
- * can have different thresholds)
+ * Reads the complexity threshold from the project's ESLint config file
+ * (eslint.config.js, .mjs, or .cjs). Returns the maximum threshold value
+ * found (different file types can have different thresholds).
  * @param {string} projectRoot - Root directory of the project
  * @returns {number} Maximum complexity threshold value
  */
 export function getComplexityThreshold(projectRoot) {
-  const configPath = resolve(projectRoot, 'eslint.config.js');
+  const configPath = findESLintConfig(projectRoot);
+  if (!configPath) {
+    console.warn('No ESLint config found, defaulting complexity threshold to 10');
+    return 10;
+  }
 
   try {
     const configContent = readFileSync(configPath, 'utf-8');
@@ -19,8 +23,7 @@ export function getComplexityThreshold(projectRoot) {
     const complexityMatches = configContent.match(/complexity:\s*\[["'](?:warn|error)["'],\s*\{\s*max:\s*(\d+)/g);
 
     if (!complexityMatches || complexityMatches.length === 0) {
-      // Default to 10 if not found
-      console.warn('Could not find complexity threshold in eslint.config.js, defaulting to 10');
+      console.warn('Could not find complexity threshold in config, defaulting to 10');
       return 10;
     }
 
@@ -36,10 +39,9 @@ export function getComplexityThreshold(projectRoot) {
     }
 
     // Return the maximum threshold value (to be safe, use the highest)
-    const maxThreshold = Math.max(...maxValues);
-    return maxThreshold;
+    return Math.max(...maxValues);
   } catch (error) {
-    console.warn(`Error reading eslint.config.js: ${error.message}, defaulting to 10`);
+    console.warn(`Error reading ESLint config: ${error.message}, defaulting to 10`);
     return 10;
   }
 }

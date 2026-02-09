@@ -117,15 +117,6 @@ function calculateFunctionStatistics(allFunctions, complexityThreshold) {
     allFunctions.length > 0
       ? Math.max(...allFunctions.map((i) => parseInt(i.complexity, 10)))
       : 0;
-  const avgComplexity =
-    allFunctions.length > 0
-      ? Math.round(
-          allFunctions.reduce(
-            (sum, i) => sum + parseInt(i.complexity, 10),
-            0
-          ) / allFunctions.length
-        )
-      : 0;
   const withinThreshold = allFunctions.filter(
     (f) => parseInt(f.complexity, 10) <= complexityThreshold
   ).length;
@@ -137,7 +128,6 @@ function calculateFunctionStatistics(allFunctions, complexityThreshold) {
     overThreshold,
     allFunctionsCount,
     maxComplexity,
-    avgComplexity,
     withinThreshold,
     withinThresholdPercentage,
   };
@@ -231,7 +221,6 @@ function getCliFlags() {
     hideTableInitially: argv.includes('--hide-table'),
     hideLinesInitially: argv.includes('--no-lines'),
     hideHighlightsInitially: argv.includes('--no-highlights'),
-    shouldExport: argv.includes('--export') || argv.includes('--exports'),
   };
 }
 
@@ -344,26 +333,14 @@ async function generateOneFileHTML(
   }
 }
 
-function runExportsIfRequested(shouldExport, projectRoot, allFunctions) {
-  if (!shouldExport) return;
+function runExports(projectRoot, allFunctions) {
   try {
     const packageJsonPath = resolve(projectRoot, 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
     const exportDirConfig =
       packageJson.complexityReport?.exportDir || 'complexity/reports';
     const exportDir = resolve(projectRoot, exportDirConfig);
-    const exportResult = generateAllExports(
-      allFunctions,
-      projectRoot,
-      exportDir
-    );
-    console.log(`\n✅ Exports generated in: ${exportDirConfig}/`);
-    console.log(
-      `   Generated ${exportResult.generatedFiles.length} export file(s):`
-    );
-    exportResult.generatedFiles.forEach((file) =>
-      console.log(`   - ${file.replace(projectRoot + '/', '')}`)
-    );
+    generateAllExports(allFunctions, projectRoot, exportDir);
   } catch (error) {
     console.error('Error generating exports:', error.message);
     console.error('  Exports will be skipped, but HTML report generation will continue.');
@@ -374,30 +351,26 @@ function printReportSummary(
   stats,
   complexityThreshold,
   foldersGenerated,
-  filesGenerated
+  filesGenerated,
+  reportDir
 ) {
-  console.log(`\n✅ Complexity report generated: complexity/index.html`);
-  console.log(`   About: complexity/about.html`);
-  console.log(`   Generated ${foldersGenerated} folder HTML file(s)`);
-  console.log(`   Generated ${filesGenerated} file HTML page(s)`);
-  console.log(`   Found ${stats.allFunctionsCount} total function(s)`);
+  const check = process.stdout.isTTY ? '\x1b[32m\u2713\x1b[0m' : '\u2713';
+  console.log(`\n${check} Complexity report generated: ${reportDir}/index.html`);
+  console.log('');
+  console.log('Summary');
+  console.log(`  Files analyzed: ${filesGenerated}`);
+  console.log(`  Functions found: ${stats.allFunctionsCount}`);
+  console.log(`  Above threshold (>${complexityThreshold}): ${stats.overThreshold.length}`);
+  console.log(`  Highest complexity: ${stats.maxComplexity}`);
   if (stats.overThreshold.length > 0) {
-    console.log(
-      `   ${stats.overThreshold.length} function(s) with complexity > ${complexityThreshold}`
-    );
+    const yellow = process.stdout.isTTY ? '\x1b[33m' : '';
+    const reset = process.stdout.isTTY ? '\x1b[0m' : '';
     console.log('');
+    console.log(`${yellow}Functions above threshold${reset}`);
     stats.overThreshold.forEach((f) =>
-      console.log(
-        `   ${f.file}:${f.line}  ${f.functionName}  (complexity ${f.complexity})`
-      )
+      console.log(`${yellow}  ${f.file}:${f.line}  ${f.functionName}  ${f.complexity}${reset}`)
     );
   }
-  if (stats.allFunctionsCount > 0) {
-    console.log(
-      `   Highest complexity: ${stats.maxComplexity} / Average: ${stats.avgComplexity}`
-    );
-  }
-  console.log(`   Using AST-based parser for 100% accuracy`);
 }
 
 /**
@@ -410,7 +383,6 @@ function printReportSummary(
  * @param {boolean} [options.hideTableInitially] - Hide breakdown table initially
  * @param {boolean} [options.hideLinesInitially] - Hide line numbers initially
  * @param {boolean} [options.hideHighlightsInitially] - Hide highlights initially
- * @param {boolean} [options.shouldExport] - Generate export files
  */
 export async function generateComplexityReport(options = {}) {
   const {
@@ -421,7 +393,6 @@ export async function generateComplexityReport(options = {}) {
     hideTableInitially = false,
     hideLinesInitially = false,
     hideHighlightsInitially = false,
-    shouldExport = false,
   } = options;
 
   // Get package root from this file's location
@@ -476,7 +447,6 @@ export async function generateComplexityReport(options = {}) {
     stats.allFunctionsCount,
     stats.overThreshold,
     stats.maxComplexity,
-    stats.avgComplexity,
     showAllInitially,
     complexityThreshold,
     decisionPointTotals,
@@ -526,9 +496,10 @@ export async function generateComplexityReport(options = {}) {
     0
   );
 
-  runExportsIfRequested(shouldExport, projectRoot, allFunctions);
-  printReportSummary(stats, complexityThreshold, foldersGenerated, filesGenerated);
-  
+  runExports(projectRoot, allFunctions);
+  const reportDir = outputDir || 'complexity';
+  printReportSummary(stats, complexityThreshold, foldersGenerated, filesGenerated, reportDir);
+
   return {
     stats,
     folders,
@@ -550,7 +521,6 @@ async function main() {
     hideTableInitially: flags.hideTableInitially,
     hideLinesInitially: flags.hideLinesInitially,
     hideHighlightsInitially: flags.hideHighlightsInitially,
-    shouldExport: flags.shouldExport,
   });
 }
 

@@ -80,6 +80,7 @@ export async function runESLintComplexityCheck(projectRoot) {
         '.angular/**',
         '**/coverage/**',
         'node_modules/**',
+        'sample/**',
       ],
       overrideConfig: {
         rules: {

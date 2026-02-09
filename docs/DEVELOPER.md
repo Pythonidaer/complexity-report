@@ -47,8 +47,7 @@ Add to your `package.json`:
 ```json
 {
   "scripts": {
-    "complexity": "complexity-report",
-    "complexity:export": "complexity-report --export"
+    "complexity": "complexity-report"
   }
 }
 ```
@@ -72,7 +71,6 @@ Options:
   --hide-table              Hide breakdown table initially
   --no-lines                Hide line numbers initially
   --no-highlights           Hide code highlights initially
-  --export                  Generate TXT/MD exports
 ```
 
 ### Examples
@@ -84,8 +82,8 @@ npx complexity-report --cwd /path/to/project
 # Custom output directory
 npx complexity-report --output-dir reports
 
-# Show all functions and export data
-npx complexity-report --show-all --export
+# Show all functions
+npx complexity-report --show-all
 
 # Analyze different project
 cd /path/to/other/project && npx complexity-report
@@ -100,13 +98,12 @@ const result = await generateComplexityReport({
   cwd: '/path/to/project',           // Project root (default: process.cwd())
   outputDir: 'reports/complexity',   // Output directory (default: 'complexity')
   showAllInitially: true,            // Show all functions (default: false)
-  shouldExport: true,                // Generate exports (default: false)
 });
 
 console.log(`Generated report in: ${result.complexityDir}`);
 console.log(`Total functions: ${result.stats.allFunctionsCount}`);
 console.log(`Max complexity: ${result.stats.maxComplexity}`);
-console.log(`Average complexity: ${result.stats.avgComplexity}`);
+console.log(`Max complexity: ${result.stats.maxComplexity}`);
 ```
 
 ### API Options
@@ -120,14 +117,12 @@ interface ComplexityReportOptions {
   hideTableInitially?: boolean;      // Hide breakdown table initially
   hideLinesInitially?: boolean;      // Hide line numbers initially
   hideHighlightsInitially?: boolean; // Hide code highlights initially
-  shouldExport?: boolean;            // Generate TXT/MD exports
 }
 
 interface ComplexityReportResult {
   stats: {
     allFunctionsCount: number;
     maxComplexity: number;
-    avgComplexity: number;
     withinThreshold: number;
     withinThresholdPercentage: number;
     overThreshold: Array<Function>;
@@ -173,7 +168,7 @@ export default [
 
 ### Export Directory
 
-Configure where TXT/MD exports are saved (when using `--export`):
+Configure where TXT/MD exports are saved (in `package.json`):
 
 ```json
 {
@@ -196,7 +191,7 @@ The tool generates:
 - **`complexity/<folder>/index.html`** - Folder-specific function listings
 - **`complexity/<folder>/<file>.html`** - File-level detailed breakdowns with annotated code
 
-### Export Files (with `--export`)
+### Export Files
 
 - **`function-names.all.txt`** - All functions with hierarchical names
 - **`function-names.all.md`** - Markdown version

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.16] - 2026-02-09
+
+### Changed
+- **Console output:** Simplified to a single success line (`✓ Complexity report generated: …`), Summary block (Files analyzed, Functions found, Above threshold, Highest complexity), and optional "Functions above threshold" list. Removed exports-generated message, About/Generated folder/file lines, "Open the report" line, and "Using AST-based parser" line. Removed average complexity from stats and output. "Functions above threshold" section and list are shown in yellow when the terminal is a TTY. Success line uses a terminal-style check character (✓) instead of the ✅ emoji.
+- **README:** Added a note to add `complexity/` to `.gitignore` to avoid committing generated reports.
+
+### Fixed
+- **Homepage filter:** Typing "." in the filter now correctly shows only the root row (`.`). Previously the dot was interpreted as a regex "any character" and matched every row. Filter now matches against the file column (`data-file`) with regex metacharacters escaped.
+- **Root folder page:** On the root files page (after clicking "."), "All files" is now a link back to the main report index instead of plain text.
+
+## [1.0.15] - 2026-02-09
+
+### Fixed
+- **Complexity threshold with .mjs/.cjs config:** The threshold reader now uses the same config discovery as the rest of the tool (`eslint.config.js`, `eslint.config.mjs`, `eslint.config.cjs`). Projects that only have `eslint.config.mjs` or `eslint.config.cjs` (e.g. some Ember apps) no longer get an "Error reading eslint.config.js: ENOENT" warning and correctly read the complexity threshold from the actual config file.
+
+## [1.0.14] - 2026-02-09
+
+### Changed
+- **TXT/MD exports are now built-in:** Running the report (CLI or API) always generates export files (function-names.all.txt, function-names.all.md, function-names-by-file.txt, etc.) to the configured export dir (default `complexity/reports/` or `package.json` → `complexityReport.exportDir`). There is no option to disable exports.
+- Removed `shouldExport` from the programmatic API and removed `--export` / `--no-export` from the CLI.
+- Removed the `report:export` npm script; use `npm run report` (or `npx complexity-report`) for both HTML report and exports.
+
+### Fixed
+- (None this release.)
+
+## [1.0.13] - 2026-02-09
+
+### Fixed
+- **Folder file links:** Clicking a file from a subfolder (e.g. `function-extraction/extract-name-ast.js` from the function-extraction folder page) now links to the correct path (e.g. `complexity/function-extraction/extract-name-ast.js.html`) instead of incorrectly resolving to `complexity/extract-name-ast.js.html`. The `../` prefix is now applied only for the root folder page at `root/index.html`.
+
 ## [1.0.12] - 2026-02-09
 
 ### Fixed

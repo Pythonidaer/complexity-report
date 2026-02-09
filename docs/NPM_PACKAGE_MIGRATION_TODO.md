@@ -113,7 +113,7 @@ Checklist for moving the complexity report generator from this repo into a stand
 ## Phase 6: Documentation ✅ COMPLETED
 
 - [x] **Root README in complexity-report**
-  - What the package does; install (`npm install complexity-report` or similar); CLI usage (`npx complexity-report`, optional flags like `--cwd`, `--show-all`, `--export`); optional programmatic example; requirement for ESLint flat config in the target project; Node version.
+  - What the package does; install (`npm install complexity-report` or similar); CLI usage (`npx complexity-report`, optional flags like `--cwd`, `--show-all`); optional programmatic example; requirement for ESLint flat config in the target project; Node version.
 
 - [x] **docs/ in complexity-report**
   - Keep or trim existing docs (TOC, module docs). Remove or update references to “scripts directory” so they refer to the package layout (e.g. “report/”, “integration/”).

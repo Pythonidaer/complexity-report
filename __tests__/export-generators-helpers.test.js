@@ -204,8 +204,9 @@ describe("export-generators/helpers", () => {
       ];
       
       const result = groupFunctionsByFolder(functions, getDirectory);
-      // getDirectory returns the file path itself for root-level files (length <= 1)
+      // getDirectory returns '' for root-level files (no path separator)
       const rootKey = getDirectory("index.ts");
+      expect(rootKey).toBe("");
       expect(result.has(rootKey)).toBe(true);
       const rootMap = result.get(rootKey);
       expect(rootMap.has("index.ts")).toBe(true);

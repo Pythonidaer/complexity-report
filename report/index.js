@@ -255,11 +255,14 @@ async function generateOneFolderHTML(
   showAllInitially,
   complexityThreshold
 ) {
-  if (!folder.directory) return 0;
   const folderPath = folder.directory;
-  const folderDir = resolve(complexityDir, ...folderPath.split('/'));
+  // Root-level files (directory ''): write folder index to complexity/root/index.html so "." is clickable
+  const outputDir = folderPath
+    ? resolve(complexityDir, ...folderPath.split('/'))
+    : resolve(complexityDir, 'root');
+  const outputDepth = folderPath ? folderPath.split('/').length : 1;
   try {
-    mkdirSync(folderDir, { recursive: true });
+    mkdirSync(outputDir, { recursive: true });
     const folderDecisionPointTotals = await calculateDecisionPointTotals(
       folder.functions,
       projectRoot,
@@ -273,13 +276,14 @@ async function generateOneFolderHTML(
       getComplexityLevel,
       getBaseFunctionName,
       complexityThreshold,
-      folderDecisionPointTotals
+      folderDecisionPointTotals,
+      outputDepth
     );
-    writeFileSync(resolve(folderDir, 'index.html'), folderHTML, 'utf-8');
+    writeFileSync(resolve(outputDir, 'index.html'), folderHTML, 'utf-8');
     return 1;
   } catch (error) {
     console.error(
-      `Error generating folder HTML for ${folderPath}:`,
+      `Error generating folder HTML for ${folderPath || 'root'}:`,
       error.message
     );
     return 0;

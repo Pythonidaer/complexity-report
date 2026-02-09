@@ -61,6 +61,9 @@ export function extractNameFromMethodDefinition(funcNode, ast) {
 
 export function extractNameFromASTNode(funcNode, ast) {
   if (funcNode.type === 'FunctionDeclaration' && funcNode.id) return funcNode.id.name;
+  if (funcNode.type === 'MethodDefinition' && funcNode.key && funcNode.key.type === 'Identifier') {
+    return funcNode.key.name;
+  }
   const varName = extractNameFromVariableDeclarator(funcNode, ast);
   if (varName) return varName;
   const propName = extractNameFromProperty(funcNode, ast);
@@ -73,7 +76,8 @@ export function extractNameFromASTNode(funcNode, ast) {
 export function doNodeTypesMatch(eslintNodeType, astNodeType) {
   return (eslintNodeType === 'FunctionDeclaration' && astNodeType === 'FunctionDeclaration') ||
     (eslintNodeType === 'ArrowFunctionExpression' && astNodeType === 'ArrowFunctionExpression') ||
-    (eslintNodeType === 'FunctionExpression' && astNodeType === 'FunctionExpression');
+    (eslintNodeType === 'FunctionExpression' && astNodeType === 'FunctionExpression') ||
+    (eslintNodeType === 'MethodDefinition' && astNodeType === 'MethodDefinition');
 }
 
 export function findArrowFunctionLine(astFunc, sourceCode) {
@@ -96,6 +100,15 @@ export function findMatchingASTFunction(
   nodeType,
   sourceCode
 ) {
+  // ESLint reports class methods as FunctionExpression; the method name is on the MethodDefinition.
+  // Prefer MethodDefinition at this line so we get the name from the key.
+  if (nodeType === 'FunctionExpression') {
+    for (const astFunc of astFunctions) {
+      if (astFunc.type === 'MethodDefinition' && getNodeLine(astFunc) === lineNumber) {
+        return astFunc;
+      }
+    }
+  }
   for (const astFunc of astFunctions) {
     if (!doNodeTypesMatch(nodeType, astFunc.type)) continue;
     if (astFunc.type === 'ArrowFunctionExpression') {

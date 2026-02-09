@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.12] - 2026-02-09
+
+### Fixed
+- **Root-level file pages:** `getDirectory()` now returns an empty string for paths with no directory (e.g. `function-hierarchy.js`). File pages for root-level files are no longer written into a bogus subfolder (e.g. `function-hierarchy.js/function-hierarchy.js.html`), so CSS and assets load correctly on pages like `complexity.js.html`.
+- **Main index "." row:** The "." row (root-level files) is now clickable: it links to `root/index.html`, which lists root-level files and their functions. Previously it linked to the same page and had no dedicated folder view.
+
+## [1.0.11] - 2026-02-09
+
+- (No additional changes; version bump for republish.)
+
+## [1.0.10] - 2026-02-09
+
+### Fixed
+- **Function names:** Class methods (ESLint `MethodDefinition`) now show their method name (e.g. `processNestedConditions`) in the report instead of "anonymous". AST matching and name extraction now support `MethodDefinition`.
+
+## [1.0.9] - 2026-02-08
+
+### Fixed
+- **Function Complexity Breakdown:** `for...of` and `for...in` now have their own columns instead of being counted under "for".
+- **Classic variant (ESLint-aligned):** Switch `default` clause is no longer counted (only `case` clauses add complexity, matching ESLint's `SwitchCase[test]` behavior). The "default" column has been removed from the breakdown table.
+
+## [1.0.8] - 2026-02-08
+
+### Fixed
+- **Function Complexity Breakdown:** `else if` statements now counted in the "else if" column instead of "if".
+- **Function Complexity Breakdown:** `do { } while` loops now counted in the "do...while" column instead of "while".
+
+## [1.0.7] - 2026-02-08
+
+- (Published; no additional changes in this changelog.)
+
 ## [1.0.6] - 2026-02-08
 
 ### Fixed

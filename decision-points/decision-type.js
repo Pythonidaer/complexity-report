@@ -8,23 +8,27 @@ import { isInFunctionParameters } from './in-params.js';
 const CONTROL_FLOW_TYPE_MAP = {
   IfStatement: 'if',
   ForStatement: 'for',
-  ForInStatement: 'for',
-  ForOfStatement: 'for',
+  ForInStatement: 'for...in',
+  ForOfStatement: 'for...of',
   WhileStatement: 'while',
-  DoWhileStatement: 'while',
+  DoWhileStatement: 'do...while',
   SwitchStatement: 'switch',
   CatchClause: 'catch',
 };
 
 /**
  * Gets decision point type for control flow statements
+ * @param {Object} node - AST node (used for SwitchCase to distinguish default)
  * @param {string} nodeType - Node type
  * @param {string} variant - 'classic' or 'modified'
  * @returns {string|null} Decision point type or null
  */
-export function getControlFlowDecisionType(nodeType, variant) {
+export function getControlFlowDecisionType(node, nodeType, variant) {
   if (nodeType === 'SwitchCase') {
-    return variant === 'modified' ? null : 'case';
+    if (variant === 'modified') return null;
+    // ESLint classic: only "SwitchCase[test]" counts (case clauses). Default has test === null and is not counted.
+    if (node && node.test === null) return null;
+    return 'case';
   }
   return CONTROL_FLOW_TYPE_MAP[nodeType] ?? null;
 }
@@ -76,8 +80,16 @@ export function getDecisionPointType(node, parentMap, ast, variant) {
 
   const nodeType = node.type;
 
-  const controlFlowType = getControlFlowDecisionType(nodeType, variant);
-  if (controlFlowType) return controlFlowType;
+  let controlFlowType = getControlFlowDecisionType(node, nodeType, variant);
+  if (controlFlowType) {
+    if (controlFlowType === 'if' && parentMap) {
+      const parent = parentMap.get(node);
+      if (parent?.type === 'IfStatement' && parent.alternate === node) {
+        return 'else if';
+      }
+    }
+    return controlFlowType;
+  }
 
   const expressionType = getExpressionDecisionType(node, nodeType);
   if (expressionType) return expressionType;

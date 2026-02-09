@@ -90,9 +90,9 @@ describe("function-extraction", () => {
       expect(functionExtraction.getDirectory("scripts/complexity-breakdown.js")).toBe("scripts");
     });
 
-    it("should return file path if no directory", () => {
-      expect(functionExtraction.getDirectory("file.tsx")).toBe("file.tsx");
-      expect(functionExtraction.getDirectory("index.js")).toBe("index.js");
+    it("should return empty string for root-level (no path separator) files", () => {
+      expect(functionExtraction.getDirectory("file.tsx")).toBe("");
+      expect(functionExtraction.getDirectory("index.js")).toBe("");
     });
 
     it("should handle nested paths", () => {
@@ -239,6 +239,77 @@ function secondFunction() {
           mockProjectRoot
         );
         expect(name).toBe("secondFunction");
+      });
+    });
+
+    describe("class methods (MethodDefinition)", () => {
+      it("should extract method name from class method", () => {
+        mockReadFileSync.mockReturnValue(`
+class Foo {
+  bar() {
+    return 1;
+  }
+}
+        `.trim());
+        mockExistsSync.mockReturnValue(true);
+
+        const name = functionExtraction.extractFunctionName(
+          "src/file.js",
+          2,
+          "MethodDefinition",
+          mockProjectRoot
+        );
+        expect(name).toBe("bar");
+      });
+
+      it("should extract method name from class with multiple methods", () => {
+        mockReadFileSync.mockReturnValue(`
+export class Service {
+  processNestedConditions(level, data = {}, fallback = 0) {
+    return level;
+  }
+
+  aggregateWithNestedLoops(matrix, threshold = 5) {
+    return 0;
+  }
+}
+        `.trim());
+        mockExistsSync.mockReturnValue(true);
+
+        const first = functionExtraction.extractFunctionName(
+          "src/file.ts",
+          2,
+          "MethodDefinition",
+          mockProjectRoot
+        );
+        const second = functionExtraction.extractFunctionName(
+          "src/file.ts",
+          6,
+          "MethodDefinition",
+          mockProjectRoot
+        );
+        expect(first).toBe("processNestedConditions");
+        expect(second).toBe("aggregateWithNestedLoops");
+      });
+
+      it("should extract method name from Angular-style Injectable class", () => {
+        mockReadFileSync.mockReturnValue(`
+@Injectable({ providedIn: 'root' })
+export class ComplexityNestedTestService {
+  processNestedConditions(level, data = {}, fallback = 0) {
+    return level;
+  }
+}
+        `.trim());
+        mockExistsSync.mockReturnValue(true);
+
+        const name = functionExtraction.extractFunctionName(
+          "src/service.ts",
+          3,
+          "MethodDefinition",
+          mockProjectRoot
+        );
+        expect(name).toBe("processNestedConditions");
       });
     });
 

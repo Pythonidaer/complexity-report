@@ -27,6 +27,8 @@ function groupFunctionsByBaseName(functions, getBaseFunctionName) {
  * @param {Function} getComplexityLevel - Function to get complexity level
  * @param {Function} getBaseFunctionName - Function to get base function name
  * @param {boolean} showAllInitially - Show all functions initially
+ * @param {number} complexityThreshold - Complexity threshold
+ * @param {string} fileLinkPrefix - Optional prefix for file links (e.g. '../' when folder page is in a subdir)
  * @returns {string} HTML row string
  */
 function generateFunctionRow(
@@ -34,7 +36,8 @@ function generateFunctionRow(
   getComplexityLevel,
   getBaseFunctionName,
   showAllInitially,
-  complexityThreshold = 10
+  complexityThreshold = 10,
+  fileLinkPrefix = ''
 ) {
   const level = getComplexityLevel(issue.complexity);
   const complexityNum = parseInt(issue.complexity, 10);
@@ -42,7 +45,7 @@ function generateFunctionRow(
   const maxComplexityForBar = Math.max(30, complexityNum);
   const percentage = Math.min(100, (complexityNum / maxComplexityForBar) * 100);
   const fileName = issue.file.split('/').pop();
-  const fileLinkPath = `${fileName}.html`;
+  const fileLinkPath = `${fileLinkPrefix}${fileName}.html`;
   const baseFunctionName = getBaseFunctionName(issue.functionName || 'unknown');
   
   return `
@@ -329,6 +332,9 @@ function getBackLink(folderPath) {
   return folderPath ? '../'.repeat(folderPath.split('/').length) + 'index.html' : 'index.html';
 }
 
+/**
+ * @param {number} [outputDepth] - If set, folder page is written at this depth (e.g. 1 for root at root/index.html). Used for assets and file links.
+ */
 export function generateFolderHTML(
   folder,
   allFolders,
@@ -340,11 +346,15 @@ export function generateFolderHTML(
     controlFlow: 0,
     expressions: 0,
     functionParameters: 0,
-  }
+  },
+  outputDepth = null
 ) {
   const folderPath = folder.directory;
-  const backLink = getBackLink(folderPath);
-  const sharedCssPath = getSharedCssPath(folderPath);
+  const depth = outputDepth !== null && outputDepth !== undefined ? outputDepth : (folderPath ? folderPath.split('/').length : 0);
+  const assetPrefix = depth > 0 ? '../'.repeat(depth) : '';
+  const backLink = assetPrefix ? `${assetPrefix}index.html` : 'index.html';
+  const sharedCssPath = assetPrefix ? `${assetPrefix}shared.css` : 'shared.css';
+  const fileLinkPrefix = assetPrefix;
   
   // Generate summary section
   const summarySection = generateSummarySection(
@@ -372,7 +382,7 @@ export function generateFolderHTML(
   <div class="pad2">
     <div class="header-row">
       <h1>${folderPath ? `<a href="${backLink}" style="color: #0074D9; text-decoration: none; font-weight: bold;">All files</a> <span style="font-weight: bold;">${folderPath}</span>` : 'All files'}</h1>
-      <a href="${folderPath ? '../'.repeat(folderPath.split('/').length) + 'about.html' : 'about.html'}" class="about-link">About Cyclomatic Complexity</a>
+      <a href="${assetPrefix ? assetPrefix + 'about.html' : 'about.html'}" class="about-link">About Cyclomatic Complexity</a>
     </div>
     ${summarySection}
     <div class="quiet" style="display: flex; align-items: center; gap: 15px; margin-top: 14px;">
@@ -406,7 +416,8 @@ export function generateFolderHTML(
               getComplexityLevel,
               getBaseFunctionName,
               showAllInitially,
-              complexityThreshold
+              complexityThreshold,
+              fileLinkPrefix
             )
           )
           .join('')}

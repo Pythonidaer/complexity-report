@@ -3,7 +3,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
 import { parseDecisionPointsAST } from '../decision-points/index.js';
+import { calculateComplexityBreakdown } from '../complexity-breakdown.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -11,6 +13,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '../..');
+const fixturesDir = resolve(__dirname, 'fixtures');
 
 describe('decision-points-ast', () => {
   describe('parseDecisionPointsAST', () => {
@@ -41,6 +44,32 @@ function test() {
       const ifPoint = decisionPoints.find(dp => dp.type === 'if');
       expect(ifPoint).toBeDefined();
       expect(ifPoint.functionLine).toBe(2);
+    });
+
+    it('should parse else if as else if not if', async () => {
+      const sourceCode = `
+function test() {
+  if (items.length === 0) return 0;
+  else if (items.length === 1) return 1;
+  return -1;
+}
+`;
+      const functions = [
+        { line: 2, functionName: 'test', nodeType: 'FunctionDeclaration' }
+      ];
+      const boundaries = new Map();
+      boundaries.set(2, { start: 2, end: 6 });
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'test.ts',
+        projectRoot
+      );
+      const ifPoints = decisionPoints.filter(dp => dp.type === 'if');
+      const elseIfPoints = decisionPoints.filter(dp => dp.type === 'else if');
+      expect(ifPoints.length).toBe(1);
+      expect(elseIfPoints.length).toBe(1);
     });
     
     it('should parse ternary operator', async () => {
@@ -96,6 +125,34 @@ function test() {
       
       const andPoints = decisionPoints.filter(dp => dp.type === '&&');
       expect(andPoints.length).toBeGreaterThan(0);
+    });
+
+    it('should parse switch in classic variant: case counts, default does not (matches ESLint)', async () => {
+      const sourceCode = `
+function test(x) {
+  switch (x) {
+    case 0: return 0;
+    case 1: return 1;
+    default: return -1;
+  }
+}
+`;
+      const functions = [
+        { line: 2, functionName: 'test', nodeType: 'FunctionDeclaration' }
+      ];
+      const boundaries = new Map();
+      boundaries.set(2, { start: 2, end: 8 });
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'test.ts',
+        projectRoot
+      );
+      const casePoints = decisionPoints.filter(dp => dp.type === 'case');
+      const defaultPoints = decisionPoints.filter(dp => dp.type === 'default');
+      expect(casePoints.length).toBe(2);
+      expect(defaultPoints.length).toBe(0);
     });
     
     it('should parse default parameters', async () => {
@@ -273,6 +330,39 @@ function test() {
       optionalChaining.forEach(dp => {
         expect(dp.functionLine).toBe(2);
       });
+    });
+
+    it('should parse decision-point-test.service.ts fixture and match expected breakdown', async () => {
+      const fixturePath = resolve(fixturesDir, 'decision-point-test.service.ts');
+      const sourceCode = readFileSync(fixturePath, 'utf-8');
+      const functions = [
+        { line: 11, functionName: 'runAllDecisionPoints', nodeType: 'MethodDefinition' }
+      ];
+      const boundaries = new Map();
+      boundaries.set(11, { start: 11, end: 55 });
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'decision-point-test.service.ts',
+        projectRoot
+      );
+      const breakdown = calculateComplexityBreakdown(11, decisionPoints, 1);
+      expect(breakdown.breakdown['if']).toBe(1);
+      expect(breakdown.breakdown['else if']).toBe(1);
+      expect(breakdown.breakdown['for']).toBe(1);
+      expect(breakdown.breakdown['for...of']).toBe(1);
+      expect(breakdown.breakdown['for...in']).toBe(1);
+      expect(breakdown.breakdown['while']).toBe(1);
+      expect(breakdown.breakdown['do...while']).toBe(1);
+      expect(breakdown.breakdown['case']).toBe(2);
+      expect(breakdown.breakdown['catch']).toBe(1);
+      expect(breakdown.breakdown['ternary']).toBe(1);
+      expect(breakdown.breakdown['&&']).toBe(1);
+      expect(breakdown.breakdown['default parameter']).toBe(2);
+      expect(breakdown.breakdown['??']).toBeGreaterThanOrEqual(1);
+      expect(breakdown.breakdown['?.']).toBeGreaterThanOrEqual(1);
+      expect(breakdown.calculatedTotal).toBeGreaterThanOrEqual(17);
     });
   });
 });

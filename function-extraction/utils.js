@@ -13,7 +13,7 @@ export function getComplexityLevel(complexity) {
 
 export function getDirectory(filePath) {
   const parts = filePath.split('/');
-  if (parts.length <= 1) return filePath;
+  if (parts.length <= 1) return '';
   return parts.slice(0, -1).join('/');
 }
 

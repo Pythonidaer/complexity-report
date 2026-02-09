@@ -38,7 +38,7 @@ function generateFolderRow(folder) {
         data-functions="${folder.withinThreshold}/${folder.totalFunctions}"
         data-percentage="${percentageValue}">
       <td class="file">
-        <a href="${folder.directory ? folder.directory + '/index.html' : 'index.html'}">
+        <a href="${folder.directory ? folder.directory + '/index.html' : 'root/index.html'}">
           ${folder.directory || '.'}
         </a>
       </td>

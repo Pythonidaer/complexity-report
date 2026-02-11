@@ -68,6 +68,44 @@ export function getExpressionDecisionType(node, nodeType) {
 }
 
 /**
+ * Returns true if node is the alternate (else/else if) of an IfStatement
+ * @param {Object} node - AST node
+ * @param {Map} parentMap - Parent map
+ * @returns {boolean}
+ */
+function isElseIfNode(node, parentMap) {
+  const parent = parentMap.get(node);
+  return parent?.type === 'IfStatement' && parent.alternate === node;
+}
+
+/**
+ * Resolves control flow type, converting 'if' to 'else if' when in else position
+ * @param {Object} node - AST node
+ * @param {string} nodeType - Node type
+ * @param {string} variant - 'classic' or 'modified'
+ * @param {Map} parentMap - Parent map
+ * @returns {string|null}
+ */
+function resolveControlFlowType(node, nodeType, variant, parentMap) {
+  const base = getControlFlowDecisionType(node, nodeType, variant);
+  if (!base) return null;
+  if (base === 'if' && parentMap && isElseIfNode(node, parentMap)) return 'else if';
+  return base;
+}
+
+/**
+ * Checks if node is a default parameter in function params (assignment in param list)
+ * @param {Object} node - AST node
+ * @param {Map} parentMap - Parent map
+ * @param {Object} ast - Root AST
+ * @returns {string|null} 'default parameter' or null
+ */
+function resolveDefaultParameterType(node, parentMap, ast) {
+  if (node.type !== 'AssignmentPattern' || !parentMap) return null;
+  return isInFunctionParameters(node, parentMap, ast) ? 'default parameter' : null;
+}
+
+/**
  * Checks if a node represents a decision point
  * @param {Object} node - AST node
  * @param {Map} parentMap - Parent map for checking context
@@ -79,26 +117,11 @@ export function getDecisionPointType(node, parentMap, ast, variant) {
   if (!node || !node.type) return null;
 
   const nodeType = node.type;
-
-  let controlFlowType = getControlFlowDecisionType(node, nodeType, variant);
-  if (controlFlowType) {
-    if (controlFlowType === 'if' && parentMap) {
-      const parent = parentMap.get(node);
-      if (parent?.type === 'IfStatement' && parent.alternate === node) {
-        return 'else if';
-      }
-    }
-    return controlFlowType;
-  }
+  const controlFlowType = resolveControlFlowType(node, nodeType, variant, parentMap);
+  if (controlFlowType) return controlFlowType;
 
   const expressionType = getExpressionDecisionType(node, nodeType);
   if (expressionType) return expressionType;
 
-  if (nodeType === 'AssignmentPattern' && parentMap) {
-    if (isInFunctionParameters(node, parentMap, ast)) {
-      return 'default parameter';
-    }
-  }
-
-  return null;
+  return resolveDefaultParameterType(node, parentMap, ast);
 }

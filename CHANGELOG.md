@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2026-02-09
+
+### Added
+- **Console summary:** "Complexity" (threshold) and "Variant" (classic/modified) are now shown in the Summary block.
+- **Severity-based styling:** When the project's ESLint complexity rule uses `"error"`, the "Functions above threshold" section is shown in red (TTY); when it uses `"warn"`, it remains yellow. Default is `"warn"` when the rule severity cannot be read.
+- **Lint script:** `npm run lint` runs ESLint on the codebase.
+- **Sample folder ignored:** The `sample/` directory is excluded from the complexity report (integration) and from `npm run lint` (eslint.config.js).
+- **Tests:** Unit tests for the decision-type module (`getDecisionPointType`, `getControlFlowDecisionType`, `getExpressionDecisionType`, `getLogicalExpressionType`) and for `getComplexitySeverity`.
+
+### Fixed
+- **ESLint complexity compliance:** Refactored `decision-points/decision-type.js`, `html-generators/folder.js`, and `report/index.js` so all functions meet the configured complexity limit (≤10). `npm run lint` now passes with zero warnings.
+
 ## [1.0.16] - 2026-02-09
 
 ### Changed

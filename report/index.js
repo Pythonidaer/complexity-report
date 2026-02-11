@@ -27,7 +27,7 @@ import {
   generateFolderHTML,
   generateFileHTML,
 } from '../html-generators/index.js';
-import { getComplexityThreshold } from '../integration/threshold/index.js';
+import { getComplexityThreshold, getComplexitySeverity } from '../integration/threshold/index.js';
 import { generateAllExports } from '../export-generators/index.js';
 
 /**
@@ -350,6 +350,8 @@ function runExports(projectRoot, allFunctions) {
 function printReportSummary(
   stats,
   complexityThreshold,
+  complexitySeverity,
+  variant,
   foldersGenerated,
   filesGenerated,
   reportDir
@@ -362,15 +364,69 @@ function printReportSummary(
   console.log(`  Functions found: ${stats.allFunctionsCount}`);
   console.log(`  Above threshold (>${complexityThreshold}): ${stats.overThreshold.length}`);
   console.log(`  Highest complexity: ${stats.maxComplexity}`);
+  console.log(`  Complexity: ${complexityThreshold}`);
+  console.log(`  Variant: ${variant}`);
   if (stats.overThreshold.length > 0) {
-    const yellow = process.stdout.isTTY ? '\x1b[33m' : '';
     const reset = process.stdout.isTTY ? '\x1b[0m' : '';
+    const color = process.stdout.isTTY
+      ? (complexitySeverity === 'error' ? '\x1b[31m' : '\x1b[33m')
+      : '';
     console.log('');
-    console.log(`${yellow}Functions above threshold${reset}`);
+    console.log(`${color}Functions above threshold${reset}`);
     stats.overThreshold.forEach((f) =>
-      console.log(`${yellow}  ${f.file}:${f.line}  ${f.functionName}  ${f.complexity}${reset}`)
+      console.log(`${color}  ${f.file}:${f.line}  ${f.functionName}  ${f.complexity}${reset}`)
     );
   }
+}
+
+/**
+ * Runs ESLint and builds stats, folders, fileMap, and decision point totals
+ * @param {string} projectRoot - Project root path
+ * @returns {Promise<{ allFunctions: Array, stats: Object, folders: Array, fileMap: Map, variant: string, complexityThreshold: number, decisionPointTotals: Object }>}
+ */
+async function runAnalysis(projectRoot) {
+  const complexityThreshold = getComplexityThreshold(projectRoot);
+  const complexitySeverity = getComplexitySeverity(projectRoot);
+  const configPath = findESLintConfig(projectRoot);
+  const variant = configPath ? getComplexityVariant(configPath) : 'classic';
+  const eslintResults = await runESLintComplexityCheck(projectRoot);
+  const allFunctions = extractFunctionsFromESLintResults(eslintResults, projectRoot);
+  allFunctions.sort((a, b) => parseInt(b.complexity, 10) - parseInt(a.complexity, 10));
+  const stats = calculateFunctionStatistics(allFunctions, complexityThreshold);
+  const folders = groupFunctionsByFolder(allFunctions, complexityThreshold);
+  const fileMap = groupFunctionsByFile(allFunctions);
+  const parseDecisionPointsFn = (
+    sourceCode,
+    functionBoundaries,
+    functions,
+    filePath,
+    projRoot
+  ) =>
+    parseDecisionPointsAST(
+      sourceCode,
+      functionBoundaries,
+      functions,
+      filePath,
+      projRoot,
+      { variant }
+    );
+  const decisionPointTotals = await calculateDecisionPointTotals(
+    allFunctions,
+    projectRoot,
+    findFunctionBoundaries,
+    parseDecisionPointsFn
+  );
+  return {
+    allFunctions,
+    stats,
+    folders,
+    fileMap,
+    variant,
+    complexityThreshold,
+    complexitySeverity,
+    decisionPointTotals,
+    parseDecisionPointsFn,
+  };
 }
 
 /**
@@ -395,52 +451,29 @@ export async function generateComplexityReport(options = {}) {
     hideHighlightsInitially = false,
   } = options;
 
-  // Get package root from this file's location
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   const packageRoot = resolve(__dirname, '..');
-  
-  // Use provided cwd or default to process.cwd()
   const projectRoot = resolve(cwd);
 
   setEscapeHtml(escapeHtml);
 
-  const complexityThreshold = getComplexityThreshold(projectRoot);
-  const configPath = findESLintConfig(projectRoot);
-  const variant = configPath ? getComplexityVariant(configPath) : 'classic';
-
-  const eslintResults = await runESLintComplexityCheck(projectRoot);
-  const allFunctions = extractFunctionsFromESLintResults(eslintResults, projectRoot);
-  allFunctions.sort((a, b) => parseInt(b.complexity, 10) - parseInt(a.complexity, 10));
-
-  const stats = calculateFunctionStatistics(allFunctions, complexityThreshold);
-  const folders = groupFunctionsByFolder(allFunctions, complexityThreshold);
-  const fileMap = groupFunctionsByFile(allFunctions);
-
-  // Use options passed to function (CLI will override via getCliFlags)
-
-  const parseDecisionPointsFn = (
-    sourceCode,
-    functionBoundaries,
-    functions,
-    filePath,
-    projectRoot
-  ) =>
-    parseDecisionPointsAST(
-      sourceCode,
-      functionBoundaries,
-      functions,
-      filePath,
-      projectRoot,
-      { variant }
-    );
-
-  const decisionPointTotals = await calculateDecisionPointTotals(
+  const analysis = await runAnalysis(projectRoot);
+  const {
     allFunctions,
-    projectRoot,
-    findFunctionBoundaries,
-    parseDecisionPointsFn
-  );
+    stats,
+    folders,
+    fileMap,
+    variant,
+    complexityThreshold,
+    complexitySeverity,
+    decisionPointTotals,
+    parseDecisionPointsFn,
+  } = analysis;
+
+  const complexityDir = outputDir
+    ? resolve(projectRoot, outputDir)
+    : resolve(projectRoot, 'complexity');
 
   const html = generateMainIndexHTML(
     folders,
@@ -454,9 +487,6 @@ export async function generateComplexityReport(options = {}) {
     stats.withinThresholdPercentage
   );
 
-  const complexityDir = outputDir 
-    ? resolve(projectRoot, outputDir)
-    : resolve(projectRoot, 'complexity');
   writeMainReport(projectRoot, complexityDir, packageRoot, html);
 
   const folderPromises = folders.map((folder) =>
@@ -498,7 +528,15 @@ export async function generateComplexityReport(options = {}) {
 
   runExports(projectRoot, allFunctions);
   const reportDir = outputDir || 'complexity';
-  printReportSummary(stats, complexityThreshold, foldersGenerated, filesGenerated, reportDir);
+  printReportSummary(
+    stats,
+    complexityThreshold,
+    complexitySeverity,
+    variant,
+    foldersGenerated,
+    filesGenerated,
+    reportDir
+  );
 
   return {
     stats,

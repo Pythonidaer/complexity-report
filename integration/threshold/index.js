@@ -45,3 +45,22 @@ export function getComplexityThreshold(projectRoot) {
     return 10;
   }
 }
+
+/**
+ * Reads the complexity rule severity (warn or error) from the project's ESLint config.
+ * @param {string} projectRoot - Root directory of the project
+ * @returns {'warn' | 'error'} Severity, default 'warn'
+ */
+export function getComplexitySeverity(projectRoot) {
+  const configPath = findESLintConfig(projectRoot);
+  if (!configPath) return 'warn';
+
+  try {
+    const configContent = readFileSync(configPath, 'utf-8');
+    // First occurrence of complexity: ["error" or 'error' takes precedence for display
+    if (/complexity:\s*\[["']error["']/.test(configContent)) return 'error';
+    return 'warn';
+  } catch {
+    return 'warn';
+  }
+}

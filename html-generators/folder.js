@@ -333,6 +333,35 @@ function getBackLink(folderPath) {
 }
 
 /**
+ * Computes depth, asset prefix, and link paths for a folder page
+ * @param {string} folderPath - Folder directory path (empty for root)
+ * @param {number|null} outputDepth - Override depth (e.g. 1 for root at root/index.html)
+ * @returns {{ depth: number, assetPrefix: string, backLink: string, sharedCssPath: string, fileLinkPrefix: string }}
+ */
+function getFolderPageContext(folderPath, outputDepth) {
+  const depth = outputDepth !== null && outputDepth !== undefined
+    ? outputDepth
+    : (folderPath ? folderPath.split('/').length : 0);
+  const assetPrefix = depth > 0 ? '../'.repeat(depth) : '';
+  const backLink = assetPrefix ? `${assetPrefix}index.html` : 'index.html';
+  const sharedCssPath = assetPrefix ? `${assetPrefix}shared.css` : 'shared.css';
+  const fileLinkPrefix = !folderPath && depth === 1 ? '../' : '';
+  return { depth, assetPrefix, backLink, sharedCssPath, fileLinkPrefix };
+}
+
+/**
+ * Returns status bar level for a folder based on within-threshold percentage
+ * @param {{ totalFunctions: number, withinThreshold: number }} folder
+ * @returns {string}
+ */
+function getFolderStatusLevel(folder) {
+  const pct = folder.totalFunctions > 0
+    ? (folder.withinThreshold / folder.totalFunctions) * 100
+    : 100;
+  return calculateStatusLevel(pct);
+}
+
+/**
  * @param {number} [outputDepth] - If set, folder page is written at this depth (e.g. 1 for root at root/index.html). Used for assets and file links.
  */
 export function generateFolderHTML(
@@ -350,40 +379,28 @@ export function generateFolderHTML(
   outputDepth = null
 ) {
   const folderPath = folder.directory;
-  const depth = outputDepth !== null && outputDepth !== undefined ? outputDepth : (folderPath ? folderPath.split('/').length : 0);
-  const assetPrefix = depth > 0 ? '../'.repeat(depth) : '';
-  const backLink = assetPrefix ? `${assetPrefix}index.html` : 'index.html';
-  const sharedCssPath = assetPrefix ? `${assetPrefix}shared.css` : 'shared.css';
-  // Only root folder page lives in complexity/root/; its file pages are in complexity/. Other folders live beside their files, so no prefix.
-  const fileLinkPrefix = !folderPath && depth === 1 ? '../' : '';
-  
-  // Generate summary section
+  const ctx = getFolderPageContext(folderPath, outputDepth);
   const summarySection = generateSummarySection(
     decisionPointTotals,
     folder.totalFunctions,
     folder.withinThreshold,
     folder.percentage
   );
-  
-  // Calculate level for status bar
-  const percentageValue = folder.totalFunctions > 0 
-    ? (folder.withinThreshold / folder.totalFunctions) * 100 
-    : 100;
-  const level = calculateStatusLevel(percentageValue);
-  
+  const level = getFolderStatusLevel(folder);
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Complexity Report - ${folderPath || 'Root'}</title>
-  <link rel="stylesheet" href="${sharedCssPath}" />
+  <link rel="stylesheet" href="${ctx.sharedCssPath}" />
 </head>
 <body>
   <div class="pad2">
     <div class="header-row">
-      <h1><a href="${backLink}" style="color: #0074D9; text-decoration: none; font-weight: bold;">All files</a>${folderPath ? ` <span style="font-weight: bold;">${folderPath}</span>` : ''}</h1>
-      <a href="${assetPrefix ? assetPrefix + 'about.html' : 'about.html'}" class="about-link">About Cyclomatic Complexity</a>
+      <h1><a href="${ctx.backLink}" style="color: #0074D9; text-decoration: none; font-weight: bold;">All files</a>${folderPath ? ` <span style="font-weight: bold;">${folderPath}</span>` : ''}</h1>
+      <a href="${ctx.assetPrefix ? ctx.assetPrefix + 'about.html' : 'about.html'}" class="about-link">About Cyclomatic Complexity</a>
     </div>
     ${summarySection}
     <div class="quiet" style="display: flex; align-items: center; gap: 15px; margin-top: 14px;">
@@ -418,7 +435,7 @@ export function generateFolderHTML(
               getBaseFunctionName,
               showAllInitially,
               complexityThreshold,
-              fileLinkPrefix
+              ctx.fileLinkPrefix
             )
           )
           .join('')}

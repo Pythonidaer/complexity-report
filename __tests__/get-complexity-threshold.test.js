@@ -12,7 +12,10 @@ vi.mock("../integration/eslint/index.js", () => ({
   findESLintConfig: mockFindESLintConfig,
 }));
 
-import { getComplexityThreshold } from "../integration/threshold/index.js";
+import {
+  getComplexityThreshold,
+  getComplexitySeverity,
+} from "../integration/threshold/index.js";
 
 describe("get-complexity-threshold", () => {
   beforeEach(() => {
@@ -130,5 +133,42 @@ describe("get-complexity-threshold", () => {
       "/my/project/eslint.config.mjs",
       "utf-8"
     );
+  });
+});
+
+describe("getComplexitySeverity", () => {
+  beforeEach(() => {
+    mockFindESLintConfig.mockReset();
+    mockReadFileSync.mockReset();
+  });
+
+  it("returns 'warn' when config has complexity rule with warn", () => {
+    mockFindESLintConfig.mockReturnValue("/project/eslint.config.js");
+    mockReadFileSync.mockReturnValue(
+      'complexity: ["warn", { max: 10 }]'
+    );
+    expect(getComplexitySeverity("/project")).toBe("warn");
+  });
+
+  it("returns 'error' when config has complexity rule with error", () => {
+    mockFindESLintConfig.mockReturnValue("/project/eslint.config.js");
+    mockReadFileSync.mockReturnValue(
+      'complexity: ["error", { max: 5 }]'
+    );
+    expect(getComplexitySeverity("/project")).toBe("error");
+  });
+
+  it("returns 'warn' when no config found", () => {
+    mockFindESLintConfig.mockReturnValue(null);
+    expect(getComplexitySeverity("/project")).toBe("warn");
+    expect(mockReadFileSync).not.toHaveBeenCalled();
+  });
+
+  it("returns 'warn' when config read throws", () => {
+    mockFindESLintConfig.mockReturnValue("/project/eslint.config.js");
+    mockReadFileSync.mockImplementation(() => {
+      throw new Error("ENOENT");
+    });
+    expect(getComplexitySeverity("/project")).toBe("warn");
   });
 });

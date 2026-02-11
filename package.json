@@ -1,11 +1,12 @@
 {
   "name": "@pythonidaer/complexity-report",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "AST-based cyclomatic complexity analyzer with interactive HTML reports and detailed function breakdowns",
   "type": "module",
   "main": "index.js",
   "bin": {
-    "complexity-report": "report/cli.js"
+    "complexity-report": "report/cli.js",
+    "complexity-analysis": "tools/analysis-cli.js"
   },
   "engines": {
     "node": ">=18"
@@ -13,6 +14,11 @@
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "coverage:summary": "node tools/coverage-to-json.js",
+    "test:coverage:json": "vitest --coverage && node tools/coverage-to-json.js",
+    "decision-points:json": "node tools/decision-points-to-json.js",
+    "analysis": "node tools/analysis-cli.js",
+    "analysis:merge": "node tools/merge-coverage-decision-points.js",
     "lint": "eslint .",
     "report": "node report/cli.js"
   },
@@ -26,6 +32,7 @@
     "html-generators/",
     "export-generators/",
     "assets/",
+    "tools/",
     "complexity-breakdown.js",
     "function-hierarchy.js",
     "README.md",

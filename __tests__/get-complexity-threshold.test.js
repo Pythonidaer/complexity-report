@@ -158,6 +158,14 @@ describe("getComplexitySeverity", () => {
     expect(getComplexitySeverity("/project")).toBe("error");
   });
 
+  it("returns 'error' when config uses single-quote severity", () => {
+    mockFindESLintConfig.mockReturnValue("/project/eslint.config.js");
+    mockReadFileSync.mockReturnValue(
+      "complexity: ['error', { max: 5 }]"
+    );
+    expect(getComplexitySeverity("/project")).toBe("error");
+  });
+
   it("returns 'warn' when no config found", () => {
     mockFindESLintConfig.mockReturnValue(null);
     expect(getComplexitySeverity("/project")).toBe("warn");
@@ -172,3 +180,4 @@ describe("getComplexitySeverity", () => {
     expect(getComplexitySeverity("/project")).toBe("warn");
   });
 });
+

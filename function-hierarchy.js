@@ -205,7 +205,7 @@ function getDefaultColumnStructure() {
  * @param {string} displayName - Full hierarchical name
  * @returns {string[]} Array of segment names
  */
-function parseHierarchySegments(displayName) {
+export function parseHierarchySegments(displayName) {
   if (!displayName || typeof displayName !== 'string') {
     return [displayName || ''];
   }

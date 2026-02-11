@@ -109,6 +109,15 @@ describe("function-extraction", () => {
   });
 
   describe("getBaseFunctionName", () => {
+    it("should return 'unknown' when name is null or empty", () => {
+      expect(functionExtraction.getBaseFunctionName(null)).toBe("unknown");
+      expect(functionExtraction.getBaseFunctionName("")).toBe("unknown");
+    });
+
+    it("should return 'unknown' when name strips to empty", () => {
+      expect(functionExtraction.getBaseFunctionName(" (useEffect callback)")).toBe("unknown");
+    });
+
     it("should return name unchanged if no callback suffix", () => {
       expect(functionExtraction.getBaseFunctionName("handleClick")).toBe("handleClick");
       expect(functionExtraction.getBaseFunctionName("MyComponent")).toBe("MyComponent");
@@ -168,6 +177,17 @@ describe("function-extraction", () => {
       mockReadFileSync.mockImplementation(() => {
         return "function testFunction() {}";
       });
+    });
+
+    it("should fall back to regex or unknown when file has invalid syntax", () => {
+      mockReadFileSync.mockReturnValue("{{{ invalid syntax");
+      const name = functionExtraction.extractFunctionName(
+        "src/bad.js",
+        1,
+        "FunctionDeclaration",
+        mockProjectRoot
+      );
+      expect(name).toBeDefined();
     });
 
     describe("named function declarations", () => {
@@ -839,6 +859,22 @@ function testFunction() {
       const results = [];
       const functions = functionExtraction.extractFunctionsFromESLintResults(results, mockProjectRoot);
       expect(functions).toEqual([]);
+    });
+
+    it("should skip file when messages is missing", () => {
+      const eslintResults = [
+        { filePath: "/project/src/a.js" },
+        {
+          filePath: "/project/src/b.js",
+          messages: [
+            { ruleId: "complexity", severity: 1, line: 1, message: "Function has a complexity of 2", nodeType: "FunctionDeclaration" },
+          ],
+        },
+      ];
+      mockReadFileSync.mockReturnValue("function f() {}");
+      const functions = functionExtraction.extractFunctionsFromESLintResults(eslintResults, mockProjectRoot);
+      expect(functions).toHaveLength(1);
+      expect(functions[0].file).toBe("src/b.js");
     });
 
     it("should extract functions from ESLint results", () => {

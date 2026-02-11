@@ -60,6 +60,18 @@ describe("function-boundaries", () => {
       expect(boundary.end).toBeGreaterThanOrEqual(1);
     });
 
+    it("should handle arrow with JSX return without parens (=> <div />)", () => {
+      const sourceCode = `const Comp = () => <div />;`;
+      const functions = [
+        { line: 1, functionName: "Comp", nodeType: "ArrowFunctionExpression" },
+      ];
+      const result = findFunctionBoundaries(sourceCode, functions);
+      expect(result.size).toBe(1);
+      const boundary = result.get(1);
+      expect(boundary).toBeDefined();
+      expect(boundary.start).toBe(1);
+    });
+
     it("should find boundaries for multiple functions", () => {
       const sourceCode = `function firstFunction() {
   return 1;

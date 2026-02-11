@@ -66,6 +66,48 @@ Then run:
 npm run complexity
 ```
 
+### Analysis output (for tooling / LLMs)
+
+To generate machine-readable summaries (decision points and, if you use Vitest, coverage) in one step, add:
+
+```json
+{
+  "scripts": {
+    "analysis": "complexity-analysis"
+  }
+}
+```
+
+Then run from your project root:
+
+```bash
+npm run analysis
+```
+
+- **Always:** Runs ESLint and writes **decision points** to `coverage/decision-points-summary.json`, then merges into `coverage/analysis.json`.
+- **If Vitest is installed:** Also runs `vitest run --coverage`, writes `coverage/coverage-summary.json`, and merges coverage + decision points (including `uncoveredDecisionPoints`) into `coverage/analysis.json`.
+- **If Vitest is not installed:** Skips coverage and prints a short note; you still get decision points and `coverage/analysis.json` (without coverage fields). No need to install Vitest unless you want coverage data.
+
+You can also run once without adding a script: `npx complexity-analysis` (from project root).
+
+#### Prompt example for an LLM
+
+After running `npm run analysis`, you can hand the merged report to an LLM for test ideas or coverage help. Example prompt:
+
+```
+I ran the complexity-analysis tool for this project. Please read coverage/analysis.json.
+
+For each file in `files`, use `uncoveredLines` and `uncoveredDecisionPoints` (if present) to suggest concrete tests or code changes that would improve coverage. Focus on [file or module name] first, then others. List the file path, the line or range, and a one-line test idea or change.
+```
+
+**What to expect:** The LLM will read `coverage/analysis.json` (and optionally the repo) and can:
+
+- Suggest tests for uncovered branches (using `uncoveredLines` and `decisionPoints` / `uncoveredDecisionPoints`).
+- Explain which decision points (if, ternary, `&&`, etc.) are on uncovered lines and how to hit them.
+- If you only have decision points (no Vitest), it can still use `decisionPointLines` and `decisionPoints` to suggest where tests or refactors would help.
+
+Point the LLM at the path to `coverage/analysis.json` (e.g. attach the file or give the repo path) so it can read the JSON.
+
 ## CLI Options
 
 ```bash

@@ -42,3 +42,77 @@ npm run test:coverage
 ```
 
 Report location: `coverage/index.html` (line-by-line coverage).
+
+## User-facing analysis script (one command)
+
+Consumers of the package can run a single script that generates decision-points summary and (if Vitest is installed) coverage summary, then merges them into `coverage/analysis.json`:
+
+- **Add to package.json:** `"analysis": "complexity-analysis"` then run `npm run analysis`.
+- **Or one-off:** From project root, `npx complexity-analysis`.
+
+Vitest is optional: if it is not installed, the script still generates `coverage/decision-points-summary.json` and `coverage/analysis.json` (without coverage data) and prints a short note. See [README](../README.md#analysis-output-for-tooling--llms).
+
+---
+
+## Coverage summary JSON
+
+A machine-readable summary of coverage (per-file stats and uncovered line ranges) can be generated for tooling or editor/LLM hints:
+
+```bash
+# Generate coverage, then write summary JSON (default: coverage/coverage-summary.json)
+npm run test:coverage:json
+
+# Or, if coverage was already run, just convert existing coverage-final.json
+npm run coverage:summary
+```
+
+Optional args: `node tools/coverage-to-json.js [input.json] [output.json]` (defaults: `coverage/coverage-final.json` → `coverage/coverage-summary.json`).
+
+Output shape: `{ summary: { statements, branches, functions, lines }, files: [ { file, statements, branches, functions, lines, uncoveredLines, uncoveredLineRanges } ] }`. Example for one file:
+
+```json
+{
+  "file": "function-hierarchy.js",
+  "statements": 96.13,
+  "branches": 81.48,
+  "functions": 100,
+  "lines": 96.13,
+  "uncoveredLines": [105, 106, 110, 111, 144, 145, ...],
+  "uncoveredLineRanges": ["105-106", "110-111", "144-145", ...]
+}
+```
+
+## Decision points summary JSON
+
+Decision points (if, for, ternary, &&, etc.) can be exported in a format aligned with the coverage summary for tooling or editor/LLM hints (e.g. to identify branches that might need tests):
+
+```bash
+npm run decision-points:json
+```
+
+To generate both summaries in one go (Vitest coverage + coverage-summary + decision-points-summary):
+
+```bash
+npm run analysis
+```
+
+This runs ESLint (same as the complexity report), extracts decision points per file using the same AST pipeline, and writes `coverage/decision-points-summary.json`. Both summary JSONs (coverage and decision points) live under `coverage/` when using Vitest.
+
+Optional args: `node tools/decision-points-to-json.js [cwd] [output.json]` (defaults: `.` → `coverage/decision-points-summary.json`).
+
+Output shape (aligned with coverage summary): `{ summary: { totalDecisionPoints, filesWithDecisionPoints }, files: [ { file, decisionPointCount, decisionPoints, decisionPointLines, decisionPointLineRanges } ] }`. Example for one file:
+
+```json
+{
+  "file": "complexity-breakdown.js",
+  "decisionPointCount": 2,
+  "decisionPoints": [
+    { "line": 38, "type": "if", "functionLine": 37 },
+    { "line": 18, "type": "||", "functionLine": 8 }
+  ],
+  "decisionPointLines": [18, 38],
+  "decisionPointLineRanges": ["18", "38"]
+}
+```
+
+Merge both into one file: run `npm run analysis:merge` to write `coverage/analysis.json` (per-file coverage, decision points, and `uncoveredDecisionPoints`). Run `npm run analysis` first so both summaries exist.

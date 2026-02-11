@@ -29,7 +29,7 @@ vi.mock("eslint", () => ({
   }),
 }));
 
-import { runESLintComplexityCheck, findESLintConfig } from "../integration/eslint/index.js";
+import { runESLintComplexityCheck, findESLintConfig, getComplexityVariant } from "../integration/eslint/index.js";
 import { ESLint } from "eslint";
 
 describe("eslint-integration", () => {
@@ -73,6 +73,25 @@ describe("eslint-integration", () => {
       mockExistsSync.mockReturnValue(false);
       const path = findESLintConfig(mockProjectRoot);
       expect(path).toBeNull();
+    });
+  });
+
+  describe("getComplexityVariant", () => {
+    it("returns 'modified' when config content has variant: \"modified\"", () => {
+      mockReadFileSync.mockReturnValue('complexity: ["warn", { max: 10, variant: "modified" }]');
+      expect(getComplexityVariant("/project/eslint.config.js")).toBe("modified");
+    });
+
+    it("returns 'classic' when config content has no modified variant", () => {
+      mockReadFileSync.mockReturnValue("complexity: ['warn', { max: 10 }]");
+      expect(getComplexityVariant("/project/eslint.config.js")).toBe("classic");
+    });
+
+    it("returns 'classic' when readFileSync throws", () => {
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error("ENOENT");
+      });
+      expect(getComplexityVariant("/project/eslint.config.js")).toBe("classic");
     });
   });
 

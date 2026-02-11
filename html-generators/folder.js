@@ -343,8 +343,12 @@ function getFolderPageContext(folderPath, outputDepth) {
     ? outputDepth
     : (folderPath ? folderPath.split('/').length : 0);
   const assetPrefix = depth > 0 ? '../'.repeat(depth) : '';
-  const backLink = assetPrefix ? `${assetPrefix}index.html` : 'index.html';
-  const sharedCssPath = assetPrefix ? `${assetPrefix}shared.css` : 'shared.css';
+  const backLink = outputDepth !== null && outputDepth !== undefined
+    ? (assetPrefix ? `${assetPrefix}index.html` : 'index.html')
+    : getBackLink(folderPath);
+  const sharedCssPath = outputDepth !== null && outputDepth !== undefined
+    ? (assetPrefix ? `${assetPrefix}shared.css` : 'shared.css')
+    : getSharedCssPath(folderPath);
   const fileLinkPrefix = !folderPath && depth === 1 ? '../' : '';
   return { depth, assetPrefix, backLink, sharedCssPath, fileLinkPrefix };
 }

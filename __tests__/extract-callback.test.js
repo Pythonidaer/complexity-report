@@ -32,8 +32,16 @@ describe("extract-callback", () => {
       expect(getCalleeCallbackName({ type: "MemberExpression" })).toBe(null);
     });
 
+    it("returns null for MemberExpression with property without name", () => {
+      expect(getCalleeCallbackName({ type: "MemberExpression", property: {} })).toBe(null);
+    });
+
     it("returns name for Identifier callee", () => {
       expect(getCalleeCallbackName({ type: "Identifier", name: "setTimeout" })).toBe("setTimeout");
+    });
+
+    it("returns null for Identifier without name", () => {
+      expect(getCalleeCallbackName({ type: "Identifier" })).toBe(null);
     });
 
     it("returns null for other node types", () => {
@@ -47,6 +55,19 @@ describe("extract-callback", () => {
       const ast = { type: "Program", body: [] };
       const result = checkCallExpressionCallback(funcNode, ast);
       expect(result).toBe(null);
+    });
+
+    it("returns callee name for Identifier when function is inside call", () => {
+      const funcNode = { type: "ArrowFunctionExpression", range: [10, 20] };
+      const callExpr = {
+        type: "CallExpression",
+        callee: { type: "Identifier", name: "setTimeout" },
+        arguments: [funcNode],
+        range: [0, 50],
+      };
+      const ast = { type: "Program", body: [{ type: "ExpressionStatement", expression: callExpr }] };
+      const result = checkCallExpressionCallback(funcNode, ast);
+      expect(result).toBe("setTimeout");
     });
   });
 
@@ -63,6 +84,24 @@ describe("extract-callback", () => {
     it("returns null when function is not inside return statement", () => {
       const funcNode = { type: "ArrowFunctionExpression", range: [10, 20] };
       const ast = { type: "Program", body: [] };
+      const result = checkReturnCallback(funcNode, ast);
+      expect(result).toBe(null);
+    });
+
+    it("returns 'return' when function is direct return value and has containing function", () => {
+      const funcNode = { type: "ArrowFunctionExpression", range: [25, 35] };
+      const returnStatement = { type: "ReturnStatement", argument: funcNode, range: [18, 36] };
+      const block = { type: "BlockStatement", body: [returnStatement] };
+      const parentFunc = { type: "FunctionDeclaration", body: block, range: [0, 50] };
+      const ast = { type: "Program", body: [parentFunc] };
+      const result = checkReturnCallback(funcNode, ast);
+      expect(result).toBe("return");
+    });
+
+    it("returns null when function is in return but argument is not direct (no containing function)", () => {
+      const funcNode = { type: "ArrowFunctionExpression", range: [30, 40] };
+      const returnStatement = { type: "ReturnStatement", argument: funcNode, range: [18, 42] };
+      const ast = { type: "Program", body: [returnStatement] };
       const result = checkReturnCallback(funcNode, ast);
       expect(result).toBe(null);
     });

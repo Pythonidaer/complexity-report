@@ -207,6 +207,41 @@ describe("html-generators", () => {
       expect(result).toContain("data-file");
       expect(result).toContain('data-file="."');
     });
+
+    it("should render low level when folder percentage is below 40", () => {
+      const folders = [
+        { directory: "lib", totalFunctions: 10, withinThreshold: 2, percentage: 20, functions: [] },
+      ];
+      const result = generateMainIndexHTML(folders, 10, [], 0, false);
+      expect(result).toContain("bar low");
+      expect(result).toContain("cover-fill low");
+    });
+
+    it("should render root folder with root/index.html link when directory is empty", () => {
+      const folders = [
+        { directory: "", totalFunctions: 2, withinThreshold: 1, percentage: 50, functions: [] },
+      ];
+      const result = generateMainIndexHTML(folders, 2, [], 0, false);
+      expect(result).toContain("root/index.html");
+      expect(result).toContain('data-file="."');
+    });
+
+    it("should apply status-line medium when 40% within threshold", () => {
+      const folders = [{ directory: "", totalFunctions: 10, withinThreshold: 4, percentage: 40, functions: [] }];
+      const result = generateMainIndexHTML(folders, 10, [], 0, false, 10, { controlFlow: 0, expressions: 0, functionParameters: 0 }, 4);
+      expect(result).toContain("status-line medium");
+    });
+
+    it("should apply status-line low when under 40% within threshold", () => {
+      const folders = [{ directory: "", totalFunctions: 10, withinThreshold: 2, percentage: 20, functions: [] }];
+      const result = generateMainIndexHTML(folders, 10, [], 0, false, 10, { controlFlow: 0, expressions: 0, functionParameters: 0 }, 2);
+      expect(result).toContain("status-line low");
+    });
+
+    it("should format percentage as 0% when allFunctionsCount is 0", () => {
+      const result = generateMainIndexHTML([], 0, [], 0, false, 10, { controlFlow: 0, expressions: 0, functionParameters: 0 }, 0);
+      expect(result).toContain("0%");
+    });
   });
 
   describe("generateFolderHTML", () => {
@@ -363,6 +398,28 @@ describe("html-generators", () => {
       expect(result).toContain('href="../complexity-breakdown.js.html"');
     });
 
+    it("should use assetPrefix empty when outputDepth is 0", () => {
+      const folder = {
+        directory: "",
+        totalFunctions: 0,
+        withinThreshold: 0,
+        percentage: 100,
+        functions: [],
+      };
+      const result = generateFolderHTML(
+        folder,
+        [folder],
+        false,
+        mockGetComplexityLevel,
+        mockGetBaseFunctionName,
+        10,
+        { controlFlow: 0, expressions: 0, functionParameters: 0 },
+        0
+      );
+      expect(result).toContain('href="index.html"');
+      expect(result).toContain('href="shared.css"');
+    });
+
     it("should handle showAllInitially parameter", () => {
       const folder = {
         directory: "src",
@@ -382,6 +439,42 @@ describe("html-generators", () => {
       
       expect(result).toContain("showAllFunctions");
       expect(result).toContain("checked");
+    });
+
+    it("should apply status-line medium when 40% within threshold", () => {
+      const folder = {
+        directory: "lib",
+        totalFunctions: 10,
+        withinThreshold: 4,
+        percentage: 40,
+        functions: [],
+      };
+      const result = generateFolderHTML(
+        folder,
+        [folder],
+        false,
+        mockGetComplexityLevel,
+        mockGetBaseFunctionName
+      );
+      expect(result).toContain('status-line medium');
+    });
+
+    it("should apply status-line low when under 40% within threshold", () => {
+      const folder = {
+        directory: "lib",
+        totalFunctions: 10,
+        withinThreshold: 2,
+        percentage: 20,
+        functions: [],
+      };
+      const result = generateFolderHTML(
+        folder,
+        [folder],
+        false,
+        mockGetComplexityLevel,
+        mockGetBaseFunctionName
+      );
+      expect(result).toContain('status-line low');
     });
   });
 
@@ -422,6 +515,49 @@ describe("html-generators", () => {
       // HTML might be lowercase doctype
       expect(result.toLowerCase()).toContain("<!doctype html>");
       expect(result).toContain("test.ts");
+    });
+
+    it("should omit folder breadcrumb when file is at root (fileDir empty)", async () => {
+      mockGetDirectory.mockReturnValue("");
+      const functions = [{ line: 1, functionName: "main", complexity: "1" }];
+      const result = await generateFileHTML(
+        "index.js",
+        functions,
+        "/project",
+        mockFindFunctionBoundaries,
+        mockParseDecisionPoints,
+        mockCalculateComplexityBreakdown,
+        mockFormatFunctionHierarchy,
+        mockGetComplexityLevel,
+        mockGetDirectory,
+        escapeHtml
+      );
+      // When fileDir is empty, no folder link - just "All files / fileName" (no <a> for folder)
+      expect(result).toContain("All files");
+      expect(result).toContain("index.js");
+      expect(result).not.toMatch(/\/ <a href="[^"]*index\.html">[^<]*<\/a> \/ index\.js/);
+    });
+
+    it("should add hide-highlights class when hideHighlightsInitially is true", async () => {
+      const functions = [{ line: 1, functionName: "test", complexity: "1" }];
+      const result = await generateFileHTML(
+        "src/test.ts",
+        functions,
+        "/project",
+        mockFindFunctionBoundaries,
+        mockParseDecisionPoints,
+        mockCalculateComplexityBreakdown,
+        mockFormatFunctionHierarchy,
+        mockGetComplexityLevel,
+        mockGetDirectory,
+        escapeHtml,
+        false,
+        false,
+        10,
+        false,
+        true
+      );
+      expect(result).toContain("hide-highlights");
     });
 
     it("should handle missing file gracefully", async () => {

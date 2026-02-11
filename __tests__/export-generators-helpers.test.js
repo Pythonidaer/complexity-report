@@ -65,6 +65,20 @@ describe("export-generators/helpers", () => {
       expect(result).toBe("parentFunction → useEffect → map");
     });
 
+    it("should pick immediate parent when two containers have same size (tie-break by later start)", () => {
+      const func5 = { file: "test.js", line: 5, functionName: "outer" };
+      const func10 = { file: "test.js", line: 10, functionName: "inner" };
+      const func12 = { file: "test.js", line: 12, functionName: "innermost" };
+      const fileBoundaries = new Map([
+        [5, { start: 5, end: 25 }],
+        [10, { start: 10, end: 30 }],
+        [12, { start: 12, end: 18 }],
+      ]);
+      const fileFunctions = [func5, func10, func12];
+      const result = buildHierarchicalFunctionName(func12, fileBoundaries, fileFunctions);
+      expect(result).toBe("inner → innermost");
+    });
+
     it("should handle unknown function name", () => {
       const func = { file: "test.js", line: 10, functionName: null };
       const fileBoundaries = new Map();
@@ -72,6 +86,30 @@ describe("export-generators/helpers", () => {
       
       const result = buildHierarchicalFunctionName(func, fileBoundaries, fileFunctions);
       expect(result).toBe("unknown");
+    });
+
+    it("should return displayName when parent base name is invalid for hierarchy", () => {
+      const parentFunc = { file: "test.js", line: 5, functionName: "anonymous" };
+      const childFunc = { file: "test.js", line: 10, functionName: "callback" };
+      const fileBoundaries = new Map([
+        [5, { start: 5, end: 20 }],
+        [10, { start: 10, end: 15 }],
+      ]);
+      const fileFunctions = [parentFunc, childFunc];
+      const result = buildHierarchicalFunctionName(childFunc, fileBoundaries, fileFunctions);
+      expect(result).toBe("callback");
+    });
+
+    it("should return displayName when leaf name is invalid", () => {
+      const parentFunc = { file: "test.js", line: 5, functionName: "parent" };
+      const childFunc = { file: "test.js", line: 10, functionName: "anonymous" };
+      const fileBoundaries = new Map([
+        [5, { start: 5, end: 20 }],
+        [10, { start: 10, end: 15 }],
+      ]);
+      const fileFunctions = [parentFunc, childFunc];
+      const result = buildHierarchicalFunctionName(childFunc, fileBoundaries, fileFunctions);
+      expect(result).toBe("anonymous");
     });
   });
 
@@ -134,6 +172,36 @@ describe("export-generators/helpers", () => {
       const result = getTopLevelFunctions(functions, boundaries);
       expect(result).toHaveLength(1);
       expect(result[0].functionName).toBe("func1");
+    });
+
+    it("should add callback-suffix function when no boundary and first of base name", () => {
+      const functions = [
+        { file: "test.js", line: 1, functionName: "main (useEffect callback)" },
+      ];
+      const boundaries = new Map();
+      const result = getTopLevelFunctions(functions, boundaries);
+      expect(result).toHaveLength(1);
+      expect(result[0].functionName).toBe("main");
+    });
+
+    it("should add standalone name with boundary when not nested", () => {
+      const functions = [
+        { file: "test.js", line: 1, functionName: "onlyOne" },
+      ];
+      const boundaries = new Map([[1, { start: 1, end: 10 }]]);
+      const result = getTopLevelFunctions(functions, boundaries);
+      expect(result).toHaveLength(1);
+      expect(result[0].functionName).toBe("onlyOne");
+    });
+
+    it("should add callback-suffix function with boundary when first of base name (addTopLevelFunctionWithBoundary branch)", () => {
+      const functions = [
+        { file: "a.js", line: 5, functionName: "foo (useEffect callback)" },
+      ];
+      const boundaries = new Map([[5, { start: 5, end: 15 }]]);
+      const result = getTopLevelFunctions(functions, boundaries);
+      expect(result).toHaveLength(1);
+      expect(result[0].functionName).toBe("foo");
     });
 
     it("should keep standalone callback names as-is", () => {

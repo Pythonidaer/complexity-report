@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   setEscapeHtml,
   formatFunctionHierarchy,
+  parseHierarchySegments,
 } from "../function-hierarchy.js";
 
 describe("function-hierarchy", () => {
@@ -56,6 +57,16 @@ describe("function-hierarchy", () => {
       expect(result).toContain("3");
     });
 
+    it("should format when boundaries map is empty (no parent lookup)", () => {
+      const functions = [
+        { line: 1, functionName: "standalone", complexity: "2", file: "a.ts" },
+      ];
+      const boundaries = new Map();
+      const breakdowns = new Map([[1, { breakdown: { base: 1 }, calculatedTotal: 2 }]]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      expect(result).toContain("standalone");
+    });
+
     it("should format hierarchy with parent and child", () => {
       const functions = [
         { line: 1, functionName: "parent", complexity: "5", file: "test.ts" },
@@ -108,6 +119,38 @@ describe("function-hierarchy", () => {
       
       // Should keep the one with complexity 5
       expect(result).toContain("5");
+    });
+
+    it("should handle duplicate keys when second has lower complexity (keep first)", () => {
+      const functions = [
+        { line: 1, functionName: "test", complexity: "5", file: "test.ts" },
+        { line: 1, functionName: "test", complexity: "2", file: "test.ts" },
+      ];
+      const boundaries = new Map([
+        [1, { start: 1, end: 5 }],
+      ]);
+      const breakdowns = new Map([
+        [1, { breakdown: { base: 1, "if": 4 }, calculatedTotal: 5 }],
+      ]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      
+      expect(result).toContain("5");
+      expect(result).not.toContain("2");
+    });
+
+    it("should replace with higher complexity when duplicate key has higher value", () => {
+      const functions = [
+        { line: 1, functionName: "test", complexity: "2", file: "test.ts" },
+        { line: 1, functionName: "test", complexity: "8", file: "test.ts" },
+      ];
+      const boundaries = new Map([
+        [1, { start: 1, end: 5 }],
+      ]);
+      const breakdowns = new Map([
+        [1, { breakdown: { base: 1, "if": 7 }, calculatedTotal: 8 }],
+      ]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      expect(result).toContain("8");
     });
 
     it("should use default column structure when not provided", () => {
@@ -421,10 +464,21 @@ describe("function-hierarchy", () => {
       const breakdowns = new Map([
         [5, { breakdown: { base: 1, "if": 2 }, calculatedTotal: 3 }],
       ]);
-      // This tests the branch where functionBoundaries is falsy (passing new Map() instead of null)
-      const result = formatFunctionHierarchy(functions, new Map(), breakdowns);
+      const result = formatFunctionHierarchy(functions, null, breakdowns);
       
       expect(result).toContain("useEffect");
+    });
+
+    it("should use displayName when function has no boundary in map", () => {
+      const functions = [
+        { line: 5, functionName: "orphan", complexity: "2", file: "test.ts" },
+      ];
+      const boundaries = new Map([[1, { start: 1, end: 3 }]]);
+      const breakdowns = new Map([
+        [5, { breakdown: { base: 1, "if": 1 }, calculatedTotal: 2 }],
+      ]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      expect(result).toContain("orphan");
     });
 
     it("should handle hierarchical naming for nested callbacks", () => {
@@ -472,6 +526,58 @@ describe("function-hierarchy", () => {
       // Cleanup callback should not be parent of nested
       // nested should show parent as "parent", not "return callback"
       expect(result).toContain("parent");
+    });
+
+    it("should return displayName when parent base name is invalid for hierarchy (unknown)", () => {
+      const functions = [
+        { line: 1, functionName: "unknown", complexity: "2", file: "test.ts" },
+        { line: 5, functionName: "child", complexity: "3", file: "test.ts" },
+      ];
+      const boundaries = new Map([
+        [1, { start: 1, end: 10 }],
+        [5, { start: 5, end: 8 }],
+      ]);
+      const breakdowns = new Map([
+        [1, { breakdown: { base: 1, "if": 1 }, calculatedTotal: 2 }],
+        [5, { breakdown: { base: 1, "if": 2 }, calculatedTotal: 3 }],
+      ]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      
+      expect(result).toContain("child");
+    });
+
+    it("should return displayName when leaf name is invalid for hierarchy (anonymous)", () => {
+      const functions = [
+        { line: 1, functionName: "parent", complexity: "2", file: "test.ts" },
+        { line: 5, functionName: "anonymous", complexity: "3", file: "test.ts" },
+      ];
+      const boundaries = new Map([
+        [1, { start: 1, end: 10 }],
+        [5, { start: 5, end: 8 }],
+      ]);
+      const breakdowns = new Map([
+        [1, { breakdown: { base: 1, "if": 1 }, calculatedTotal: 2 }],
+        [5, { breakdown: { base: 1, "if": 2 }, calculatedTotal: 3 }],
+      ]);
+      const result = formatFunctionHierarchy(functions, boundaries, breakdowns);
+      
+      expect(result).toContain("anonymous");
+    });
+  });
+
+  describe("parseHierarchySegments", () => {
+    it("should return [displayName || ''] when displayName is falsy or not a string", () => {
+      expect(parseHierarchySegments(null)).toEqual([""]);
+      expect(parseHierarchySegments(undefined)).toEqual([""]);
+      expect(parseHierarchySegments("")).toEqual([""]);
+    });
+
+    it("should split by arrow when displayName includes ' → '", () => {
+      expect(parseHierarchySegments("Parent → child")).toEqual(["Parent", "child"]);
+    });
+
+    it("should split by parentheses when no arrow", () => {
+      expect(parseHierarchySegments("Parent (child)")).toEqual(["Parent", "child"]);
     });
   });
 });

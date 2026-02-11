@@ -332,6 +332,102 @@ function test() {
       });
     });
 
+    it('should parse with .tsx file path (jsx option enabled)', async () => {
+      const sourceCode = `
+function Test() {
+  if (x) return <div />;
+  return null;
+}
+`;
+      const functions = [{ line: 2, functionName: 'Test', nodeType: 'FunctionDeclaration' }];
+      const boundaries = new Map();
+      boundaries.set(2, { start: 2, end: 5 });
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'Component.tsx',
+        projectRoot
+      );
+      const ifPoint = decisionPoints.find(dp => dp.type === 'if');
+      expect(ifPoint).toBeDefined();
+    });
+
+    it('should return empty array when parseAST returns null (invalid syntax)', async () => {
+      const decisionPoints = await parseDecisionPointsAST(
+        '{{{ invalid',
+        new Map(),
+        [{ line: 1, functionName: 'x', nodeType: 'FunctionDeclaration' }],
+        'bad.js',
+        projectRoot
+      );
+      expect(decisionPoints).toEqual([]);
+    });
+
+    it('should return empty array when no functions match AST (astToEslintMap size 0)', async () => {
+      const sourceCode = `
+function real() {
+  if (x) return 1;
+  return 0;
+}
+`;
+      const functions = [{ line: 99, functionName: 'other', nodeType: 'FunctionDeclaration' }];
+      const boundaries = new Map();
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'test.js',
+        projectRoot
+      );
+      expect(decisionPoints).toEqual([]);
+    });
+
+    it('should return empty array when functions array is empty (astToEslintMap size 0)', async () => {
+      const sourceCode = `
+function real() {
+  if (x) return 1;
+  return 0;
+}
+`;
+      const boundaries = new Map();
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        [],
+        'test.js',
+        projectRoot
+      );
+      expect(decisionPoints).toEqual([]);
+    });
+
+    it('should use variant modified and include SwitchStatement not SwitchCase', async () => {
+      const sourceCode = `
+function test() {
+  switch (x) {
+    case 1: return 1;
+    case 2: return 2;
+    default: return 0;
+  }
+}
+`;
+      const functions = [{ line: 2, functionName: 'test', nodeType: 'FunctionDeclaration' }];
+      const boundaries = new Map();
+      boundaries.set(2, { start: 2, end: 10 });
+      const decisionPoints = await parseDecisionPointsAST(
+        sourceCode,
+        boundaries,
+        functions,
+        'test.js',
+        projectRoot,
+        { variant: 'modified' }
+      );
+      const switchPoints = decisionPoints.filter(dp => dp.type === 'switch');
+      const casePoints = decisionPoints.filter(dp => dp.type === 'case');
+      expect(switchPoints.length).toBe(1);
+      expect(casePoints.length).toBe(0);
+    });
+
     it('should parse decision-point-test.service.ts fixture and match expected breakdown', async () => {
       const fixturePath = resolve(fixturesDir, 'decision-point-test.service.ts');
       const sourceCode = readFileSync(fixturePath, 'utf-8');
